@@ -21,8 +21,24 @@ body {
 
 @font-face {
     font-family: 'Inter';
-    font-style: normal;
+    font-style:  normal;
+    font-weight: 100;
+    font-display: swap;
+    src: url('chrome-extension://__MSG_@@extension_id__/font/Inter-Thin.woff2') format("woff2");
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style:  normal;
     font-weight: 400;
     font-display: swap;
-    src: url('chrome-extension://__MSG_@@extension_id__/font/Inter-Regular.woff') format('woff');
+    src: url('chrome-extension://__MSG_@@extension_id__/font/Inter-Regular.woff2') format("woff2");
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style:  normal;
+    font-weight: 900;
+    font-display: swap;
+    src: url('chrome-extension://__MSG_@@extension_id__/font/Inter-Black.woff2') format("woff2");
 }

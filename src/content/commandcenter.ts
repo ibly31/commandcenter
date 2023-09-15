@@ -20,29 +20,16 @@ function renderCommandCenter(): RenderResult {
         target.onclick = () => destroy();
         document.body.appendChild(target);
     }
-    //
-    // chrome.runtime.sendMessage({ textBack: 'qwerqwer' }, res => {
-    //     console.log('textBack response: ', res);
-    // });
 
-    chrome.runtime.sendMessage({ loadAllCommands: true }, (response) => {
-        console.log('3195 got loadRecent response: ', response)
-        const bookmarkCommands = response?.bookmarkCommands ?? [];
-        const currentTabCommands = response?.currentTabCommands ?? [];
-        const recentTabCommands = response?.recentTabCommands ?? [];
-        commandCenter = new CommandCenter({
-            target,
-            props: {
-                focusCommandInputRef: true,
-                renderingInPage: true,
-                bookmarkCommands,
-                currentTabCommands,
-                recentTabCommands,
-                escapeHandler: () => destroy()
-            }
-        });
-        return () => destroy();
+    commandCenter = new CommandCenter({
+        target,
+        props: {
+            focusCommandInputRef: true,
+            renderingInPage: true,
+            escapeHandler: () => destroy()
+        }
     });
+    return () => destroy();
 }
 
 let commandCenterRenderResult: RenderResult;
