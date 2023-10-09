@@ -11,8 +11,26 @@ export type TabInfo = {
 export enum CommandType {
     BOOKMARK = 'BOOKMARK',
     CURRENT_TAB = 'CURRENT_TAB',
-    RECENT_TAB = 'RECENT_TAB',
+    CLOSED_TAB = 'CLOSED_TAB',
     EXACT = 'EXACT'
+}
+
+export const COMMAND_TYPE_LABELS = {
+    [CommandType.BOOKMARK]: 'bookmark',
+    [CommandType.CURRENT_TAB]: 'current',
+    [CommandType.CLOSED_TAB]: 'closed',
+    [CommandType.EXACT]: 'command'
+};
+
+export const MAX_COMMAND_TYPE_LABEL_LENGTH = Object.values(COMMAND_TYPE_LABELS).reduce(
+    function (a, b) {
+        return a.length > b.length ? a : b;
+    }
+).length;
+
+export function padCommandTypeLabel(type: CommandType) {
+    const typeLabel = COMMAND_TYPE_LABELS[type];
+    return typeLabel + "/".repeat(MAX_COMMAND_TYPE_LABEL_LENGTH - typeLabel.length + 1);
 }
 
 export type Command = {
@@ -29,7 +47,7 @@ export type Command = {
 export type LoadCommandsResponse = {
     bookmarkCommands?: Command[];
     currentTabCommands?: Command[];
-    recentTabCommands: Command[];
+    closedTabCommands: Command[];
 }
 
 export const DEFAULT_FAVICON_URL = 'https://iterm2.com/favicon.ico';
@@ -51,9 +69,9 @@ function currentTabsToCommands(tabs: chrome.tabs.Tab[]): Command[] {
     })
 }
 
-export function loadRecentTabCommands(callback: (commands: Command[]) => void) {
-    chrome.runtime.sendMessage({ loadRecentTabCommands: true }, (response) => {
-        callback(response.recentTabCommands);
+export function loadClosedTabCommands(callback: (commands: Command[]) => void) {
+    chrome.runtime.sendMessage({ loadClosedTabCommands: true }, (response) => {
+        callback(response.closedTabCommands);
     });
 }
 

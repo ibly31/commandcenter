@@ -21,7 +21,7 @@ type Message = {
 
     textBack?: string;
 
-    loadRecentTabsCommands?: boolean;
+    loadClosedTabCommands?: boolean;
     loadAllCommands?: boolean;
 };
 
@@ -38,7 +38,9 @@ chrome.runtime.onMessage.addListener(
             chrome.tabs.remove(sender.tab.id, () => {});
         } else if (message.duplicateTab) {
             chrome.tabs.duplicate(sender.tab.id);
-        } else if (message.moveTabOffset) {
+        } else if (message.switchToTabId !== undefined) {
+            chrome.tabs.update(message.switchToTabId, { active: true });
+        } else if (message.moveTabOffset !== undefined) {
             chrome.tabs.move(sender.tab.id, {
                 index: sender.tab.index + message.moveTabOffset
             });
@@ -46,9 +48,9 @@ chrome.runtime.onMessage.addListener(
             loadAllCommands().then(response => {
                 sendResponse(response);
             });
-        } else if (message.loadRecentTabsCommands) {
+        } else if (message.loadClosedTabCommands) {
             sendResponse({
-                recentTabCommands: getRecentTabCommands()
+                closedTabCommands: getClosedTabCommands()
             });
         }
         return true;
@@ -71,27 +73,27 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
 });
 
-const recentCount = 15;
-const recentlyClosedTabs: TabInfo[] = [];
+const closedCount = 50;
+const closedTabs: TabInfo[] = [];
 chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
     const removedTab = tabs[tabId];
     if (removedTab) {
         delete tabs[tabId];
-        recentlyClosedTabs.splice(0, 0, {
+        closedTabs.splice(0, 0, {
             ...removedTab,
             closeDate: Number(new Date())
         });
-        if (recentlyClosedTabs.length > recentCount) {
-            recentlyClosedTabs.splice(recentCount - 1, 1);
+        if (closedTabs.length > closedCount) {
+            closedTabs.splice(closedCount - 1, 1);
         }
     }
 });
 
-function getRecentTabCommands(): Command[] {
-    return recentlyClosedTabs.map(tabInfo => {
+function getClosedTabCommands(): Command[] {
+    return closedTabs.map(tabInfo => {
         return {
-            type: CommandType.RECENT_TAB,
-            id: `${CommandType.RECENT_TAB}-${tabInfo.id}`,
+            type: CommandType.CLOSED_TAB,
+            id: `${CommandType.CLOSED_TAB}-${tabInfo.id}`,
             icon: tabInfo.favIconUrl,
             url: tabInfo.url,
             title: tabInfo.title,
@@ -103,8 +105,8 @@ function getRecentTabCommands(): Command[] {
 async function loadAllCommands(): Promise<LoadCommandsResponse> {
     const currentTabCommands = await loadCurrentTabCommands();
     const bookmarkCommands = await loadBookmarkCommands();
-    const recentTabCommands = getRecentTabCommands();
+    const closedTabCommands = getClosedTabCommands();
     return {
-        bookmarkCommands, currentTabCommands, recentTabCommands
+        bookmarkCommands, currentTabCommands, closedTabCommands
     };
 }

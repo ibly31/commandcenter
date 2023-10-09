@@ -7,16 +7,16 @@
         Command,
         loadCurrentTabCommands,
         loadBookmarkCommands,
-        loadRecentTabCommands,
+        loadClosedTabCommands,
     } from '../commands';
     //
     let bookmarkCommands: Command[] = [];
     let currentTabCommands: Command[] = [];
-    let recentTabCommands: Command[] = [];
+    let closedTabCommands: Command[] = [];
 
     loadBookmarkCommands().then((commands: Command[]) => bookmarkCommands = commands);
     loadCurrentTabCommands().then((commands: Command[]) => currentTabCommands = commands);
-    // loadRecentTabCommands((commands: Command[]) => recentTabCommands = commands);
+    loadClosedTabCommands((commands: Command[]) => closedTabCommands = commands);
 
     // let exactCommands: Command[] = [
     //     {
@@ -84,7 +84,7 @@
             {focusCommandInputRef}
             {bookmarkCommands}
             {currentTabCommands}
-            {recentTabCommands}
+            {closedTabCommands}
     />
 </div>
 

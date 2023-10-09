@@ -7,8 +7,10 @@
     import {
         Command,
         CommandType,
+        padCommandTypeLabel,
         DEFAULT_FAVICON_URL,
         LoadCommandsResponse,
+        MAX_COMMAND_TYPE_LABEL_LENGTH,
     } from '../commands';
 
     const EXACT_ID_GE = 'ge';
@@ -30,7 +32,7 @@
 
     export let bookmarkCommands: Command[] = [];
     export let currentTabCommands: Command[] = [];
-    export let recentTabCommands: Command[] = [];
+    export let closedTabCommands: Command[] = [];
     let exactCommands: Command[] = [
         {
             type: CommandType.EXACT,
@@ -42,10 +44,25 @@
         }
     ];
 
+    if (renderingInPage) {
+        chrome.runtime.sendMessage({ loadAllCommands: true }, (response: LoadCommandsResponse) => {
+            bookmarkCommands = response?.bookmarkCommands ?? [];
+            currentTabCommands = response?.currentTabCommands ?? [];
+            closedTabCommands = response?.closedTabCommands ?? [];
+        });
+    }
+
     let allCommands: Command[] = [];
-    $: allCommands = [...exactCommands, ...currentTabCommands, ...bookmarkCommands, ...recentTabCommands];
+    $: allCommands = [...exactCommands, ...currentTabCommands, ...bookmarkCommands, ...closedTabCommands];
     let queryCommands: Command[];
     $: queryCommands = searchCommands(allCommands, query);
+
+    function searchSelector(command: Command): string {
+        const { isSearchUrl, url, title, type } = command;
+        let content = isSearchUrl ? url : title.replaceAll('-', ' ');
+        const typePadded = padCommandTypeLabel(type);
+        return typePadded + content;
+    }
 
     function searchCommands(commands: Command[], search: string): Command[] {
         let commandsToSearch: Command[] = [
@@ -53,17 +70,19 @@
             ...commands.map(command => ({ ...command, isSearchUrl: true }))
         ];
         const fzf = new Fzf(commandsToSearch, {
-            selector: (command: Command) => command.isSearchUrl ? command.url : command.title.replaceAll('-', ' '),
+            selector: searchSelector,
             tiebreakers: [typeTieBreaker, dateTieBreaker]
         });
 
         const results: FzfResultItem<Command>[] = fzf.find(search.replaceAll(' ', ''));
         selectedIndex = 0;
         const seenIds = new Set();
-        return results.map(item => ({
-            ...item.item,
-            matchIndices: item.positions
-        })).filter(command => {
+        return results.map(item => {
+            const positivePositions = Array.from(item.positions ?? [])
+                .map(pos => pos - MAX_COMMAND_TYPE_LABEL_LENGTH - 1)
+                .filter(pos => pos >= 0);
+            return { ...item.item, matchIndices: new Set(positivePositions) };
+        }).filter(command => {
             if (seenIds.has(command.id)) {
                 return false;
             }
@@ -90,8 +109,12 @@
 
         const command = queryCommands[index];
         if (command.type === CommandType.CURRENT_TAB) {
-            chrome.tabs.update(Number(command.id), { active: true });
-            closeWindow();
+            if (renderingInPage) {
+                chrome.runtime.sendMessage({ switchToTabId: Number(command.id) });
+            } else {
+                chrome.tabs.update(Number(command.id), { active: true });
+                closeWindow();
+            }
         } else if (command.type === CommandType.EXACT) {
             if (command.id === EXACT_ID_GE) {
                 chrome.runtime.sendMessage({ openExtensions: true });

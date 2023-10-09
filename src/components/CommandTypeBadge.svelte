@@ -1,25 +1,21 @@
 <script lang="ts">
-    import { CommandType } from '../commands';
+    import { CommandType, COMMAND_TYPE_LABELS } from '../commands';
     export let type: CommandType;
 
-    let badgeText = {
-        [CommandType.BOOKMARK]: 'BOOKMARK',
-        [CommandType.CURRENT_TAB]: 'CURRENT',
-        [CommandType.RECENT_TAB]: 'CLOSED',
-        [CommandType.EXACT]: 'COMMAND'
-    }[type];
 </script>
 
 <span class="command-type-badge {type}">
-    {badgeText}
+    {COMMAND_TYPE_LABELS[type]}
 </span>
 
 <style lang="scss">
     @import '../colors';
 
     .command-type-badge {
-        font-size: 10px;
-        min-width: 65px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        min-width: 80px;
         color: $kh-white;
         padding: 3px 0;
         border-radius: 4px;
@@ -34,7 +30,7 @@
             color: $kh-blue;
         }
 
-        &.RECENT_TAB {
+        &.CLOSED_TAB {
             background-color: $kh-silver;
         }
 
