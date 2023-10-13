@@ -1,12 +1,10 @@
 import BookmarkTreeNode = chrome.bookmarks.BookmarkTreeNode;
+import { MSG, sendMessage } from '../comms/messages';
 
-export type TabInfo = {
-    id: string;
-    url: string;
-    title: string;
-    favIconUrl: string;
-    closeDate: number;
-};
+export enum Mode {
+    COMMAND_CENTER = 'COMMAND_CENTER',
+    TAB_CONTROLLER = 'TAB_CONTROLLER'
+}
 
 export enum CommandType {
     BOOKMARK = 'BOOKMARK',
@@ -44,12 +42,6 @@ export type Command = {
     matchIndices?: Set<number>;
 };
 
-export type LoadCommandsResponse = {
-    bookmarkCommands?: Command[];
-    currentTabCommands?: Command[];
-    closedTabCommands: Command[];
-}
-
 export const DEFAULT_FAVICON_URL = 'https://iterm2.com/favicon.ico';
 
 export async function loadCurrentTabCommands(): Promise<Command[]> {
@@ -58,9 +50,10 @@ export async function loadCurrentTabCommands(): Promise<Command[]> {
 
 function currentTabsToCommands(tabs: chrome.tabs.Tab[]): Command[] {
     return tabs.map((tab, index) => {
+        const id = (tab.id ?? index).toString();
         return {
             type: CommandType.CURRENT_TAB,
-            id: tab.id.toString() ?? index.toString(),
+            id: id,
             icon: tab.favIconUrl ?? DEFAULT_FAVICON_URL,
             url: tab.url ?? '',
             title: tab.title ?? '',
@@ -70,7 +63,7 @@ function currentTabsToCommands(tabs: chrome.tabs.Tab[]): Command[] {
 }
 
 export function loadClosedTabCommands(callback: (commands: Command[]) => void) {
-    chrome.runtime.sendMessage({ loadClosedTabCommands: true }, (response) => {
+    sendMessage(MSG.loadClosedTabCommands, (response) => {
         callback(response.closedTabCommands);
     });
 }

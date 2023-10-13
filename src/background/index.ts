@@ -1,29 +1,15 @@
 import {
-    Command, CommandType,
-    loadBookmarkCommands, LoadCommandsResponse,
+    type Command,
+    CommandType,
+    loadBookmarkCommands,
     loadCurrentTabCommands,
-    TabInfo
-} from '../commands';
+} from '../comms/commands';
+import { type CommandMessageResponse, type Message, MSG } from '../comms/messages';
+import { loadCurrentTabs, makeSenderTab, type TabInfo } from '../comms/tabs';
 
-// Background service workers
-// https://developer.chrome.com/docs/extensions/mv3/service_workers/
-
-chrome.runtime.onInstalled.addListener(() => {
-    // storage.get().then(console.log);
-});
-
-type Message = {
-    openExtensions?: boolean;
-    closeCurrentTab?: boolean;
-    duplicateTab?: boolean;
-    switchToTabId?: number;
-    moveTabOffset?: number;
-
-    textBack?: string;
-
-    loadClosedTabCommands?: boolean;
-    loadAllCommands?: boolean;
-};
+// chrome.runtime.onInstalled.addListener(() => {
+//      storage.get().then(console.log);
+// });
 
 chrome.runtime.onMessage.addListener(
     (message: Message, sender, sendResponse) => {
@@ -31,26 +17,38 @@ chrome.runtime.onMessage.addListener(
             console.error('Ignoring request, no tab', message, sender);
             return;
         }
-
-        if (message.openExtensions) {
-            chrome.tabs.create({ url: 'chrome://extensions' });
-        } else if (message.closeCurrentTab) {
-            chrome.tabs.remove(sender.tab.id, () => {});
-        } else if (message.duplicateTab) {
-            chrome.tabs.duplicate(sender.tab.id);
+        const senderTab = makeSenderTab(sender);
+        if (message.directive) {
+            if (message.directive === MSG.openExtensions) {
+                chrome.tabs.create({ url: 'chrome://extensions' });
+            } else if (message.directive === MSG.closeCurrentTab) {
+                chrome.tabs.remove(senderTab.id, () => {});
+            } else if (message.directive === MSG.duplicateTab) {
+                chrome.tabs.duplicate(senderTab.id);
+            } else if (message.directive === MSG.loadAllCommands) {
+                loadAllCommands().then(sendResponse);
+            } else if (message.directive === MSG.loadCurrentTabs) {
+                loadCurrentTabs().then(currentTabs => {
+                    sendResponse({ currentTabs });
+                });
+            } else if (message.directive === MSG.loadClosedTabCommands) {
+                sendResponse({
+                    closedTabCommands: getClosedTabCommands()
+                });
+            }
         } else if (message.switchToTabId !== undefined) {
             chrome.tabs.update(message.switchToTabId, { active: true });
+        } else if (message.removeTabId !== undefined) {
+            chrome.tabs.remove(message.removeTabId);
+        } else if (message.reopenTab !== undefined) {
+            chrome.tabs.create({
+                index: message.reopenTab.index,
+                url: message.reopenTab.url,
+                active: false
+            });
         } else if (message.moveTabOffset !== undefined) {
-            chrome.tabs.move(sender.tab.id, {
-                index: sender.tab.index + message.moveTabOffset
-            });
-        } else if (message.loadAllCommands) {
-            loadAllCommands().then(response => {
-                sendResponse(response);
-            });
-        } else if (message.loadClosedTabCommands) {
-            sendResponse({
-                closedTabCommands: getClosedTabCommands()
+            chrome.tabs.move(senderTab.id, {
+                index: senderTab.index + message.moveTabOffset
             });
         }
         return true;
@@ -67,6 +65,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 title: title ?? '',
                 id: id?.toString() ?? '',
                 favIconUrl: favIconUrl ?? '',
+                pinned: tab.pinned,
                 closeDate: 0
             };
         }
@@ -102,7 +101,7 @@ function getClosedTabCommands(): Command[] {
     });
 }
 
-async function loadAllCommands(): Promise<LoadCommandsResponse> {
+async function loadAllCommands(): Promise<CommandMessageResponse> {
     const currentTabCommands = await loadCurrentTabCommands();
     const bookmarkCommands = await loadBookmarkCommands();
     const closedTabCommands = getClosedTabCommands();

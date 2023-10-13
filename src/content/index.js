@@ -72,16 +72,16 @@ const G_KEY_MAP = {
         triggerPageOffset(-1);
     },
     'D': () => {
-        sendMessage({ duplicateTab: true });
+        sendMessage({ directive: 'duplicateTab' });
     },
     'h': () => {
         G_KEY_MAP.n();
     },
-    'c': () => {
-        window.postMessage({ source: 'commandcenter', action: 'open' });
-    },
     'r': () => {
         window.postMessage({ source: 'commandcenter', action: 'open' });
+    },
+    't': () => {
+        window.postMessage({ source: 'commandcenter', action: 'open-tabcenter' });
     },
 };
 
@@ -127,13 +127,14 @@ function setupVimKeys() {
         const DOUBLE_TIME = 350;
 
         function withinDoubleTime() {
-            return new Date() - LAST_G_TIME <= DOUBLE_TIME;
+            return Number(new Date()) - LAST_G_TIME <= DOUBLE_TIME;
         }
 
         let key = event.key;
         if (event.shiftKey) {
             key = key.toUpperCase();
         }
+        console.log('Clicked key ', key);
         if (key === 'g' && !withinDoubleTime()) {
             LAST_G_TIME = Number(new Date());
         } else if (key in G_KEY_MAP) {

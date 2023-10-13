@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CommandType, COMMAND_TYPE_LABELS } from '../commands';
+    import { CommandType, COMMAND_TYPE_LABELS } from '../comms/commands';
     export let type: CommandType;
 
 </script>

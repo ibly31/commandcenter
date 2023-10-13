@@ -1,26 +1,28 @@
 <script lang="ts">
-    import KeyboardEvent = chrome.input.ime.KeyboardEvent;
-    import { Fzf, FzfResultItem } from 'fzf';
+    import { Fzf, type FzfResultItem } from 'fzf';
     import HighlightText from './HighlightText.svelte';
     import CommandTypeBadge from './CommandTypeBadge.svelte';
 
     import {
-        Command,
+        type Command,
         CommandType,
-        padCommandTypeLabel,
         DEFAULT_FAVICON_URL,
-        LoadCommandsResponse,
         MAX_COMMAND_TYPE_LABEL_LENGTH,
-    } from '../commands';
+        Mode,
+        padCommandTypeLabel,
+    } from '../comms/commands';
+    import { type CommandMessageResponse, MSG, sendMessage } from '../comms/messages';
 
+    const EXACT_ID_TC = 'tc';
     const EXACT_ID_GE = 'ge';
 
     /** Props */
     export let largeWidth = false;
-    export let focusCommandInputRef = false;
+    export let focusInputRef = false;
     export let escapeHandler: () => void;
+    export let switchModeHandler: (mode: Mode) => void;
     export let renderingInPage: boolean;
-    $: if (focusCommandInputRef) {
+    $: if (focusInputRef) {
         commandInputRef?.focus();
     }
 
@@ -30,27 +32,33 @@
     let selectedIndex = 0;
     let loading = false;
 
-    export let bookmarkCommands: Command[] = [];
-    export let currentTabCommands: Command[] = [];
-    export let closedTabCommands: Command[] = [];
+    let bookmarkCommands: Command[] = [];
+    let currentTabCommands: Command[] = [];
+    let closedTabCommands: Command[] = [];
+    sendMessage(MSG.loadAllCommands, (response: CommandMessageResponse) => {
+        bookmarkCommands = response.bookmarkCommands ?? [];
+        currentTabCommands = response.currentTabCommands ?? [];
+        closedTabCommands = response.closedTabCommands ?? [];
+    });
+
     let exactCommands: Command[] = [
+        {
+            type: CommandType.EXACT,
+            id: EXACT_ID_TC,
+            icon: DEFAULT_FAVICON_URL,
+            url: '',
+            title: 'tc - Tab Controller',
+            sortDate: 0
+        },
         {
             type: CommandType.EXACT,
             id: EXACT_ID_GE,
             icon: DEFAULT_FAVICON_URL,
-            url: 'chrome://extensions',
+            url: '',
             title: 'ge - Go to Extensions',
             sortDate: 0
         }
     ];
-
-    if (renderingInPage) {
-        chrome.runtime.sendMessage({ loadAllCommands: true }, (response: LoadCommandsResponse) => {
-            bookmarkCommands = response?.bookmarkCommands ?? [];
-            currentTabCommands = response?.currentTabCommands ?? [];
-            closedTabCommands = response?.closedTabCommands ?? [];
-        });
-    }
 
     let allCommands: Command[] = [];
     $: allCommands = [...exactCommands, ...currentTabCommands, ...bookmarkCommands, ...closedTabCommands];
@@ -110,14 +118,16 @@
         const command = queryCommands[index];
         if (command.type === CommandType.CURRENT_TAB) {
             if (renderingInPage) {
-                chrome.runtime.sendMessage({ switchToTabId: Number(command.id) });
+                sendMessage({ switchToTabId: Number(command.id )});
             } else {
                 chrome.tabs.update(Number(command.id), { active: true });
                 closeWindow();
             }
         } else if (command.type === CommandType.EXACT) {
-            if (command.id === EXACT_ID_GE) {
-                chrome.runtime.sendMessage({ openExtensions: true });
+            if (command.id === EXACT_ID_TC) {
+                switchModeHandler?.(Mode.TAB_CONTROLLER);
+            } else if (command.id === EXACT_ID_GE) {
+                sendMessage(MSG.openExtensions);
                 closeWindow();
             }
         } else {
@@ -168,15 +178,15 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="commands-container" class:large-width={largeWidth} on:click|stopPropagation>
-    <!-- svelte-ignore a11y-autofocus -->
     <div class="input-container" class:loading={loading}>
+    <!-- svelte-ignore a11y-autofocus -->
         <input class="command-input"
                bind:this={commandInputRef}
                bind:value={query}
                on:keydown={handleInputKey}
                spellcheck="false"
                autocomplete="false"
-               placeholder="Search..."
+               placeholder="Search commands..."
                maxlength="20"
                autofocus
         >
@@ -201,11 +211,13 @@
                         shouldHighlight={!command.isSearchUrl}
                         indices={command.matchIndices}
                 />
+                {#if command.url?.length}
                 <HighlightText
                         text={command.url}
                         shouldHighlight={command.isSearchUrl}
                         indices={command.matchIndices}
                 />
+                {/if}
             </span>
         </a>
     {/each}
@@ -214,6 +226,7 @@
 
 <style lang="scss">
     @import '../colors';
+    @import '../containers';
 
     @mixin list-border {
         border: 1px solid $kh-gray;
@@ -236,15 +249,7 @@
     }
 
     .commands-container {
-        max-height: 80vh;
-        min-width: 800px;
-        width: 800px;
-        max-width: 800px;
-        background-color: black;
-        border-radius: 15px;
-        overflow: hidden;
-        border: 3px solid $kh-silver;
-        font-family: 'Inter', sans-serif;
+        @include container-base;
 
         &.large-width {
             min-width: 1000px;
@@ -262,7 +267,7 @@
 
             .command-input {
                 padding: 15px 20px;
-                font-size: 1.5rem;
+                font-size: 24px;
                 color: $kh-white;
                 background-color: transparent;
                 width: 100%;
@@ -270,6 +275,11 @@
 
                 &:focus {
                     outline: none;
+                }
+
+                &:focus-visible {
+                  box-shadow: none;
+                  outline: none !important;
                 }
             }
 
@@ -299,13 +309,14 @@
             margin: 0;
             padding: 0;
             overflow: scroll;
+            width: 100%;
 
             .command {
                 @include list-border;
                 display: flex;
                 align-items: center;
                 padding: 5px 0;
-                min-height: 60px;
+                height: 60px;
                 text-decoration: none;
 
                 &:first-child {
@@ -331,7 +342,6 @@
 
                 .command-highlight-texts {
                     margin-left: 10px;
-                    min-height: 60px;
                     display: flex;
                     flex-direction: column;
                     justify-content: space-evenly;
