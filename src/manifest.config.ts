@@ -28,7 +28,7 @@ export default defineManifest(async (env) => ({
     content_scripts: [
         {
             matches: ["https://*/*"],
-            js: ["src/content/index.js", "src/content/commandcenter.ts"],
+            js: ["src/content/index.ts", "src/content/commandcenter.ts"],
         },
     ],
     // web_accessible_resources: [

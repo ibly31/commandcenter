@@ -1,5 +1,5 @@
 import BookmarkTreeNode = chrome.bookmarks.BookmarkTreeNode;
-import { MSG, sendMessage } from '../comms/messages';
+import { Msg, sendMessage } from '../comms/messages';
 
 export enum Mode {
     COMMAND_CENTER = 'COMMAND_CENTER',
@@ -37,7 +37,7 @@ export type Command = {
     icon: string;
     url: string;
     title: string;
-    sortDate: number;
+    sortDate?: number;
     isSearchUrl?: boolean;
     matchIndices?: Set<number>;
 };
@@ -63,7 +63,7 @@ function currentTabsToCommands(tabs: chrome.tabs.Tab[]): Command[] {
 }
 
 export function loadClosedTabCommands(callback: (commands: Command[]) => void) {
-    sendMessage(MSG.loadClosedTabCommands, (response) => {
+    sendMessage(Msg.loadClosedTabCommands, (response) => {
         callback(response.closedTabCommands);
     });
 }
@@ -73,8 +73,8 @@ export async function loadBookmarkCommands(): Promise<Command[]> {
 }
 
 function bookmarksToCommands(rootNode: BookmarkTreeNode[]): Command[] {
-    const bookmarksBar = rootNode[0].children.filter(node => node.title === 'Bookmarks Bar');
-    const flattened = flattenTree(bookmarksBar[0].children);
+    const bookmarksBar = rootNode[0]?.children?.filter(node => node.title === 'Bookmarks Bar');
+    const flattened = flattenTree(bookmarksBar[0]?.children);
     flattened.sort((a, b) => Number(a.id) - Number(b.id));
     const fullTitleMap: { [id: string]: string } = flattened.reduce((ftm, bm) => {
         let fullTitle = bm.title;
@@ -87,7 +87,7 @@ function bookmarksToCommands(rootNode: BookmarkTreeNode[]): Command[] {
     return flattened
         .filter(bm => !!bm.url)
         .map(bm => {
-            const sortDate: number = 'dateLastUsed' in bm ? bm['dateLastUsed'] : bm.dateAdded;
+            const sortDate: number | undefined = 'dateLastUsed' in bm ? bm['dateLastUsed'] as number : bm.dateAdded;
             return {
                 type: CommandType.BOOKMARK,
                 id: `${CommandType.BOOKMARK}-${bm.id}`,

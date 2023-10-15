@@ -3,7 +3,7 @@
     import CloseButton from './CloseButton.svelte';
     import TabPinnedButton from './TabPinnedButton.svelte';
     import { Fzf, type FzfResultItem } from 'fzf';
-    import { MSG, sendMessage } from '../comms/messages';
+    import { Msg, sendMessage } from '../comms/messages';
     import type { TabInfo, TabMessageResponse } from '../comms/tabs';
 
     /** Props */
@@ -23,7 +23,7 @@
     let currentTabs: TabInfo[] = [];
     let closedTabs: TabInfo[] = [];
 
-    sendMessage(MSG.loadCurrentTabs, (response: TabMessageResponse) => {
+    sendMessage(Msg.loadCurrentTabs, (response: TabMessageResponse) => {
         currentTabs = response.currentTabs ?? [];
     });
 
@@ -91,6 +91,13 @@
         console.log('Toggling tab pinned', tabId);
     }
 
+    function reopenTab() {
+        const reopenTab: TabInfo = closedTabs.splice(closedTabs.length - 1, 1).at(0);
+        reopenTab && sendMessage({ reopenTab }, (response: TabMessageResponse) => {
+            currentTabs = response.currentTabs;
+        });
+    }
+
     function handleInputKey(event: KeyboardEvent) {
         let key = event.key;
         if (key === 'Tab') {
@@ -113,16 +120,13 @@
                 escapeHandler();
             }
         } else if (key === 'Backspace') {
-            if (window.getSelection()?.type === 'Range') {
-                console.log('Text is selected', queryTabs.length);
-            } else if (queryTabs.length) {
+            const isTextSelected = window.getSelection()?.type === 'Range';
+            if (!isTextSelected && queryTabs.length) {
                 event.preventDefault();
                 removeTab(tabId);
             }
         } else if (key === 'z' && event.metaKey) {
-            const reopenTab = closedTabs.splice(closedTabs.length - 1, 1).at(0);
-            reopenTab && sendMessage({ reopenTab });
-            // TODO: Put tab back into list and bump up indices of all after it
+            reopenTab();
             event.preventDefault();
         }
     }
@@ -164,7 +168,6 @@
                 <HighlightText
                         text={tab.title}
                         indices={tab.matchIndices}
-                        truncateEllipsis
                 />
             </span>
             {#if tab.pinned}
@@ -226,6 +229,7 @@
             margin: 0;
             padding: 0;
             overflow: scroll;
+            overflow-x: hidden;
             width: 100%;
 
             .tab {

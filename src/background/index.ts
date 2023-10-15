@@ -4,8 +4,8 @@ import {
     loadBookmarkCommands,
     loadCurrentTabCommands,
 } from '../comms/commands';
-import { type CommandMessageResponse, type Message, MSG } from '../comms/messages';
-import { loadCurrentTabs, makeSenderTab, type TabInfo } from '../comms/tabs';
+import { type CommandMessageResponse, type Message, Msg } from '../comms/messages';
+import { chromeTabToTabInfo, loadCurrentTabs, makeSenderTab, type TabInfo } from '../comms/tabs';
 
 // chrome.runtime.onInstalled.addListener(() => {
 //      storage.get().then(console.log);
@@ -19,19 +19,19 @@ chrome.runtime.onMessage.addListener(
         }
         const senderTab = makeSenderTab(sender);
         if (message.directive) {
-            if (message.directive === MSG.openExtensions) {
+            if (message.directive === Msg.openExtensions) {
                 chrome.tabs.create({ url: 'chrome://extensions' });
-            } else if (message.directive === MSG.closeCurrentTab) {
+            } else if (message.directive === Msg.closeCurrentTab) {
                 chrome.tabs.remove(senderTab.id, () => {});
-            } else if (message.directive === MSG.duplicateTab) {
+            } else if (message.directive === Msg.duplicateTab) {
                 chrome.tabs.duplicate(senderTab.id);
-            } else if (message.directive === MSG.loadAllCommands) {
+            } else if (message.directive === Msg.loadAllCommands) {
                 loadAllCommands().then(sendResponse);
-            } else if (message.directive === MSG.loadCurrentTabs) {
+            } else if (message.directive === Msg.loadCurrentTabs) {
                 loadCurrentTabs().then(currentTabs => {
                     sendResponse({ currentTabs });
                 });
-            } else if (message.directive === MSG.loadClosedTabCommands) {
+            } else if (message.directive === Msg.loadClosedTabCommands) {
                 sendResponse({
                     closedTabCommands: getClosedTabCommands()
                 });
@@ -45,6 +45,13 @@ chrome.runtime.onMessage.addListener(
                 index: message.reopenTab.index,
                 url: message.reopenTab.url,
                 active: false
+            }).then((reopenedTab) => {
+                loadCurrentTabs().then(currentTabs => {
+                    const reopenedTabIndex = currentTabs.findIndex(tab => tab.id === reopenedTab.id?.toString());
+                    const reopenedTabId = currentTabs[reopenedTabIndex].id;
+                    currentTabs[reopenedTabIndex] = { ...message.reopenTab, id: reopenedTabId };
+                    sendResponse({ currentTabs })
+                });
             });
         } else if (message.moveTabOffset !== undefined) {
             chrome.tabs.move(senderTab.id, {
@@ -58,12 +65,19 @@ chrome.runtime.onMessage.addListener(
 const tabs: { [tabId: string]: TabInfo } = {};
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete') {
-        const { url, title, id, favIconUrl } = tab;
-        if (url?.startsWith('https')) {
+        const {
+            url,
+            title,
+            id,
+            index,
+            favIconUrl
+        } = tab;
+        if (id && url?.startsWith('https')) {
             tabs[id] = {
                 url: url ?? '',
                 title: title ?? '',
                 id: id?.toString() ?? '',
+                index: index,
                 favIconUrl: favIconUrl ?? '',
                 pinned: tab.pinned,
                 closeDate: 0

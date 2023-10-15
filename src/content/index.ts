@@ -1,15 +1,14 @@
-function log(...others) {
-    console.log('3195', ...others);
-}
+import { Action, Msg, postActionMessage, sendMessage } from '../comms/messages';
 
-function urlIncludes(urls) {
+type Urls = string | string[];
+function urlIncludes(urls: Urls) {
     if (!Array.isArray(urls)) {
         urls = [urls];
     }
     return urls.some(url => document.location.href.includes(url));
 }
 
-function retryAction(retrySeconds, interval, action) {
+function retryAction(retrySeconds: number, interval: number, action: () => boolean) {
     function tryAction() {
         retrySeconds = retrySeconds - interval / 1000.0;
         if (retrySeconds <= 0) {
@@ -24,33 +23,32 @@ function retryAction(retrySeconds, interval, action) {
     window.setTimeout(tryAction, interval);
 }
 
-function sendMessage(message) {
-    chrome.runtime.sendMessage(message);
-}
-
 const INPUT_ELEMENTS = ['input', 'textarea', 'button'];
 const INPUT_ROLES = ['textbox', 'textarea', 'input', 'button'];
 
 function isFocusedOnInput() {
     const active = document.activeElement;
+    if (!active) {
+        return false;
+    }
     if (INPUT_ELEMENTS.includes(active.tagName.toLowerCase())) {
         return true;
     }
-    return INPUT_ROLES.includes(active.getAttribute('role'));
+    return INPUT_ROLES.includes(active.getAttribute('role') ?? '');
 }
 
-function triggerPageOffset(offset) {
+function triggerPageOffset(offset: number) {
     const url = location.href;
 
     const numbers = url.match(/(\d+)/g);
     if (!numbers) {
-        log('Tried to trigger page offset, no numbers found');
+        console.log('Tried to trigger page offset, no numbers found');
         return;
     }
     const lastNumber = numbers.slice(-1)[0];
     const index = url.lastIndexOf(lastNumber);
     if (index === -1) {
-        log(`Unable to find ${lastNumber} in ${url}`);
+        console.log(`Unable to find ${lastNumber} in ${url}`);
         return;
     }
 
@@ -58,12 +56,13 @@ function triggerPageOffset(offset) {
     location.href = url.substring(0, index) + offsetNumber + url.substring(index + offsetNumber.length);
 }
 
-const G_KEY_MAP = {
+type KeyMap = { [key: string]: () => void };
+const G_KEY_MAP: KeyMap = {
     'g': () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     'e': () => {
-        sendMessage({ openExtensions: true });
+        sendMessage(Msg.openExtensions);
     },
     'n': () => {
         triggerPageOffset(1);
@@ -72,20 +71,20 @@ const G_KEY_MAP = {
         triggerPageOffset(-1);
     },
     'D': () => {
-        sendMessage({ directive: 'duplicateTab' });
+        sendMessage(Msg.duplicateTab);
     },
     'h': () => {
         G_KEY_MAP.n();
     },
     'r': () => {
-        window.postMessage({ source: 'commandcenter', action: 'open' });
+        postActionMessage(Action.openCommandCenter)
     },
     't': () => {
-        window.postMessage({ source: 'commandcenter', action: 'open-tabcenter' });
+        postActionMessage(Action.openTabCenter)
     },
 };
 
-const KEY_MAP = {
+const KEY_MAP: KeyMap = {
     'G': () => {
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     },
@@ -93,7 +92,7 @@ const KEY_MAP = {
         window.location.reload();
     },
     'x': () => {
-        sendMessage({ closeCurrentTab: true });
+        sendMessage(Msg.closeCurrentTab);
     },
     '<': () => {
         sendMessage({ moveTabOffset: -1 });
@@ -134,7 +133,7 @@ function setupVimKeys() {
         if (event.shiftKey) {
             key = key.toUpperCase();
         }
-        console.log('Clicked key ', key);
+
         if (key === 'g' && !withinDoubleTime()) {
             LAST_G_TIME = Number(new Date());
         } else if (key in G_KEY_MAP) {
@@ -150,9 +149,13 @@ function setupVimKeys() {
 
 setupVimKeys();
 
-const SITE_SCRIPTS = [];
+type SiteScript = {
+    urls: Urls;
+    setup: () => void;
+}
+const SITE_SCRIPTS: SiteScript[] = [];
 
-function siteScript(urls, setup) {
+function siteScript(urls: Urls, setup: () => void) {
     SITE_SCRIPTS.push({ urls, setup });
 }
 
@@ -173,18 +176,28 @@ siteScript('jira.dev.lithium.com', () => {
     document.head.appendChild(style);
 });
 
+// function querySelectorEach<ElementType>(selector: string, callback: (element: ElementType) => void) {
+//     Array.from(document.querySelectorAll(selector)).forEach(a => a.target = '_blank')
+// }
+function queryEach<ElementType extends Element>(selector: string, each: (element: ElementType) => void) {
+    document.querySelectorAll<ElementType>(selector).forEach(each);
+}
+function queryEachAnchor(selector: string, each: (element: HTMLAnchorElement) => void) {
+    queryEach<HTMLAnchorElement>(selector, each);
+}
+
 siteScript('ycombinator.com', () => {
-    Array.from(document.querySelectorAll('td.subtext a:not([class]):not([onclick])')).forEach(a => a.target = '_blank');
-    Array.from(document.querySelectorAll('a.titlelink')).forEach(a => a.target = '_blank');
+    queryEachAnchor('td.subtext a:not([class]):not([onclick])', a => a.target = '_blank');
+    queryEachAnchor('a.titlelink', a => a.target = '_blank');
 });
 
 siteScript('reddit.com', () => {
-    document.querySelectorAll('a.author').forEach(a => {
+    queryEachAnchor('a.author', a => {
         if (a.href.match(/\/u(ser)?\/[^\/]+$/g)) {
             a.href = a.href + '/submitted/?sort=top&t=all';
         }
     });
-    document.querySelectorAll('a.subreddit').forEach(a => {
+    queryEachAnchor('a.subreddit', a => {
         if (a.href.match(/\/r\/[^\/]+$/g)) {
             a.href = a.href + 'top/?sort=top&t=all';
         }
@@ -195,7 +208,7 @@ siteScript('github.com', () => {
     function retryStatusActions() {
         retryAction(15, 250, () => {
             let foundOne = false;
-            document.querySelectorAll('a.status-actions').forEach(a => {
+            queryEachAnchor('a.status-actions', a => {
                 a.href = a.href.replace('/display/redirect', '')
                 a.target = '_blank';
                 foundOne = true;
@@ -206,7 +219,7 @@ siteScript('github.com', () => {
 
     retryAction(15, 250, () => {
         let foundOne = false;
-        document.querySelectorAll('.statuses-toggle-closed').forEach(a => {
+        queryEachAnchor('.statuses-toggle-closed', a => {
             a.onclick = retryStatusActions;
         });
         return foundOne;
@@ -217,7 +230,7 @@ siteScript('github.com', () => {
 siteScript('meet.google.com', () => {
     retryAction(5, 250, () => {
         let didMute = false;
-        const muteButtons = document.querySelectorAll('[role="button"][data-is-muted="false"]');
+        const muteButtons = document.querySelectorAll<HTMLButtonElement>('[role="button"][data-is-muted="false"]');
         if (muteButtons.length === 2) {
             muteButtons.forEach((muteButton) => muteButton.click());
             didMute = true;
@@ -228,8 +241,8 @@ siteScript('meet.google.com', () => {
 
 siteScript(['sdxdemo.com', 'response.lithium.com', 'app.khoros.com'], () => {
     function makeConversationNumberClickable() {
-        const conversationNumber = document.querySelector('[tooltip="Conversation Number"]');
-        if (conversationNumber && conversationNumber.textContent?.length > 1) {
+        const conversationNumber = document.querySelector<HTMLDivElement>('[tooltip="Conversation Number"]');
+        if (conversationNumber && conversationNumber.textContent && conversationNumber.textContent.length > 1) {
             const caseId = conversationNumber.textContent.slice(1);
             conversationNumber.onclick = () => {
                 window.open(`/api/v2/conversations/displayIds/${caseId}`, '_blank');
@@ -249,30 +262,3 @@ SITE_SCRIPTS.forEach(script => {
         script.setup();
     }
 });
-//
-// const allEvents = [
-//     'Init',
-//     'Config',
-//     'FirstMessageChatInitiated',
-//     'ConversationInitiated',
-//     'ChatRulesLoaded',
-//     'WidgetConnected',
-//     'WidgetOpened',
-//     'WidgetClosed',
-//     'MessageReceived',
-//     'MessageSent',
-//     'FrameInitialized',
-//     'FrameUpdated',
-//     'ClientLoaded',
-//     'UnreadCountUpdated',
-//     'BlockChatInput',
-//     'FormSubmitSuccess',
-//     'FormSubmitFail',
-//     'FormAuthUserData'
-// ];
-// allEvents.forEach(event => {
-//     window.addEventListener(`khoros${event}`, (e) => {
-//         console.log(`khoros${event}: `, e?.detail?.sdk);
-//     })
-// });
-//

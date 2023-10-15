@@ -11,7 +11,7 @@
         Mode,
         padCommandTypeLabel,
     } from '../comms/commands';
-    import { type CommandMessageResponse, MSG, sendMessage } from '../comms/messages';
+    import { type CommandMessageResponse, Msg, sendMessage } from '../comms/messages';
 
     const EXACT_ID_TC = 'tc';
     const EXACT_ID_GE = 'ge';
@@ -35,7 +35,7 @@
     let bookmarkCommands: Command[] = [];
     let currentTabCommands: Command[] = [];
     let closedTabCommands: Command[] = [];
-    sendMessage(MSG.loadAllCommands, (response: CommandMessageResponse) => {
+    sendMessage(Msg.loadAllCommands, (response: CommandMessageResponse) => {
         bookmarkCommands = response.bookmarkCommands ?? [];
         currentTabCommands = response.currentTabCommands ?? [];
         closedTabCommands = response.closedTabCommands ?? [];
@@ -112,26 +112,36 @@
         return b.item.sortDate - a.item.sortDate;
     }
 
-    function doCommand(index: number) {
+    function switchToTabId(tabId: string) {
+        if (renderingInPage) {
+            sendMessage({ switchToTabId: Number(tabId)});
+        } else {
+            chrome.tabs.update(Number(tabId), { active: true });
+            closeWindow();
+        }
+    }
+
+    function doCommand(index: number, metaKey?: boolean) {
         loading = true;
 
         const command = queryCommands[index];
         if (command.type === CommandType.CURRENT_TAB) {
-            if (renderingInPage) {
-                sendMessage({ switchToTabId: Number(command.id )});
-            } else {
-                chrome.tabs.update(Number(command.id), { active: true });
-                closeWindow();
-            }
+            switchToTabId(command.id);
         } else if (command.type === CommandType.EXACT) {
             if (command.id === EXACT_ID_TC) {
                 switchModeHandler?.(Mode.TAB_CONTROLLER);
             } else if (command.id === EXACT_ID_GE) {
-                sendMessage(MSG.openExtensions);
+                sendMessage('qwerqwer');
                 closeWindow();
             }
         } else {
-            window.location.href = queryCommands[index].url;
+            const existingTab = currentTabCommands.find(tabCommand => tabCommand.url === command.url);
+            // If Cmd-Enter, never reuse an existing tab
+            if (!metaKey && existingTab) {
+                switchToTabId(existingTab.id);
+            } else {
+                window.location.href = command.url;
+            }
         }
 
         renderingInPage && escapeHandler();
@@ -166,7 +176,7 @@
         } else if (key === 'ArrowDown') {
             offsetSelectedIndex(1);
         } else if (key === 'Enter' && queryCommands[selectedIndex]) {
-            doCommand(selectedIndex);
+            doCommand(selectedIndex, event.metaKey);
         } else if (key === 'Escape') {
             selectedIndex = 0;
             query = '';
@@ -309,6 +319,7 @@
             margin: 0;
             padding: 0;
             overflow: scroll;
+            overflow-x: hidden;
             width: 100%;
 
             .command {
@@ -345,6 +356,7 @@
                     display: flex;
                     flex-direction: column;
                     justify-content: space-evenly;
+                    width: calc(100% - 200px);
                 }
             }
         }

@@ -22,7 +22,7 @@
     line-height: 1.2;
     -webkit-font-smoothing: initial;
 
-    *, div, input, span, a {
+    *, div, input, span {
         @include normalize;
     }
 }

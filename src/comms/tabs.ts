@@ -12,6 +12,7 @@ export type TabInfo = {
 
 export type TabMessageResponse = {
     currentTabs?: TabInfo[];
+    reopenedTab?: TabInfo;
 }
 
 type SenderTab = {
@@ -26,20 +27,20 @@ export function makeSenderTab(sender: chrome.runtime.MessageSender): SenderTab {
     };
 }
 
-export async function loadCurrentTabs(): Promise<TabInfo[]> {
-    return chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }).then(chromeTabsToTabInfo);
+export function chromeTabToTabInfo(tab: chrome.tabs.Tab): TabInfo {
+    const id = (tab.id ?? -1).toString();
+    return {
+        id: id,
+        url: tab.url ?? '',
+        title: tab.title ?? '',
+        favIconUrl: tab.favIconUrl || DEFAULT_FAVICON_URL,
+        pinned: tab.pinned,
+        index: tab.index
+    };
 }
 
-function chromeTabsToTabInfo(tabs: chrome.tabs.Tab[]): TabInfo[] {
-    return tabs.map(tab => {
-        const id = (tab.id ?? -1).toString();
-        return {
-            id: id,
-            url: tab.url ?? '',
-            title: tab.title ?? '',
-            favIconUrl: tab.favIconUrl || DEFAULT_FAVICON_URL,
-            pinned: tab.pinned,
-            index: tab.index
-        };
-    })
+export async function loadCurrentTabs(): Promise<TabInfo[]> {
+    return chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }).then(tabs => {
+        return tabs.map(chromeTabToTabInfo);
+    });
 }

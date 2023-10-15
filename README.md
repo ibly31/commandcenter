@@ -1,14 +1,9 @@
 # CommandCenter
 
-> Boilerplate for Chrome Extension Svelte Typescript project
+> Fuzzy search through bookmarks, commands and tabs. Accessible via New Tab or on any page with configured keybindings
 
-## Features
-
--   [Svelte](https://svelte.dev/)
--   [TypeScript](https://www.typescriptlang.org/)
--   [Vite](https://vitejs.dev/)
--   [CRXJS Vite Plugin](https://github.com/crxjs/chrome-extension-tools/blob/main/packages/vite-plugin/README.md)
--   [Chrome Extensions Manifest V3](https://developer.chrome.com/docs/extensions/mv3/intro/)
+## Todo
+- Make removal of tabs update the index of each item
 
 ## Development
 
@@ -17,8 +12,7 @@
 npm i
 
 # build files to `/dist` directory
-# HMR for extension pages and content scripts
-npm run dev
+npm run start
 ```
 
 ## Build

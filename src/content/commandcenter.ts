@@ -2,6 +2,7 @@ import CommandCenter from '../components/CommandCenter.svelte';
 import TabCenter from '../components/TabCenter.svelte';
 
 import './styles.css';
+import { Action, Msg, postActionMessage, Source } from '../comms/messages';
 
 type RenderResult =  () => void;
 
@@ -42,7 +43,7 @@ function renderCommandCenter(): RenderResult {
             renderingInPage: true,
             escapeHandler: () => destroy(),
             switchModeHandler: () => {
-                window.postMessage({ source: 'commandcenter', action: 'open-tabcenter' });
+                postActionMessage(Action.close);
             }
         }
     });
@@ -73,18 +74,18 @@ function renderTabCenter(): RenderResult {
 let currentRenderResult: RenderResult;
 type CommandCenterMessage = {
     data: {
-        source: 'commandcenter';
-        action: 'open' | 'open-tabcenter' | 'close';
+        source: keyof typeof Source;
+        action: keyof typeof Action;
     }
 };
 
 window.addEventListener('message', (message: CommandCenterMessage) => {
-    if (message?.data?.source === 'commandcenter') {
-        if (message.data.action === 'open') {
+    if (message?.data?.source === Source.CommandCenter) {
+        if (message.data.action === Action.openCommandCenter) {
             currentRenderResult = renderCommandCenter();
-        } else if (message.data.action === 'open-tabcenter') {
+        } else if (message.data.action === Action.openTabCenter) {
             currentRenderResult = renderTabCenter();
-        } else if (message.data.action === 'close') {
+        } else if (message.data.action === Action.close) {
             currentRenderResult?.();
         }
     }

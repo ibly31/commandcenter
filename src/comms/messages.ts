@@ -1,7 +1,7 @@
 import type { Command } from './commands';
 import type { TabInfo } from './tabs';
 
-export const MSG = {
+export const Msg = {
     openExtensions: 'openExtensions',
     closeCurrentTab: 'closeCurrentTab',
     duplicateTab: 'duplicateTab',
@@ -17,7 +17,7 @@ export type Message = {
     moveTabOffset?: number;
     reopenTab?: TabInfo;
 
-    directive?: keyof typeof MSG;
+    directive?: keyof typeof Msg;
 };
 
 export type CommandMessageResponse = {
@@ -36,4 +36,18 @@ export function sendMessage(messageOrString: Message | string, responseCallback?
         message = messageOrString;
     }
     chrome.runtime.sendMessage(message, responseCallback);
+}
+
+export const Action = {
+    openCommandCenter: 'openCommandCenter',
+    openTabCenter: 'openTabCenter',
+    close: 'close',
+}
+
+export const Source = {
+    CommandCenter: 'CommandCenter',
+};
+
+export function postActionMessage(action: string) {
+    window.postMessage({ source: Source.CommandCenter, action });
 }
