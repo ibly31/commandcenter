@@ -9,7 +9,12 @@
     background-color: transparent;
 }
 
+@mixin system-font {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 @mixin container-base {
+    @include system-font;
     max-height: 80vh;
     min-width: 1000px;
     width: 1000px;
@@ -18,11 +23,15 @@
     border-radius: 15px;
     overflow: hidden;
     border: 3px solid $kh-silver;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     line-height: 1.2;
     -webkit-font-smoothing: initial;
 
     *, div, input, span {
         @include normalize;
     }
+}
+
+@mixin border-hr {
+    border-bottom: 1px solid $kh-white;
+    padding-bottom: 15px;
 }
