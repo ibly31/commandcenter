@@ -20,8 +20,12 @@
 </script>
 
 <div class="readme-container">
+    <h1>CommandCenter</h1>
     <p>CommandCenter is a utility for adding the following functionality:</p>
-    <div class="li">"Fuzzy search" that uses <K>fzf</K> that is more forgiving and uses substring search</div>
+    <div class="li">"Fuzzy search" that uses
+        <K small>fzf</K>
+        that is more forgiving and uses substring search
+    </div>
     <div class="li">CommandCenter: list of commands, bookmarks, current and recently closed tabs</div>
     <div class="li">TabCenter: allows you to search, jump to, close and reopen tabs</div>
     <div class="li">Keybindings to open both of these on any page, not just New Tab</div>
@@ -31,7 +35,10 @@
     <p>
         Be sure to select "keep" when presented with the option when opening New Tab page for the first time
         Look at the G Key Bindings below to see how to access on any page, not just New Tab
-        To use TabCenter, use the <K>tc</K> command or search for it and hit <K>enter</K>
+        To use TabCenter, use the
+        <K>tc</K>
+        command or search for it and hit
+        <K>enter</K>
     </p>
     <h2>Keybindings</h2>
     <p>Keybindings follow general Vim style</p>
@@ -40,9 +47,13 @@
     {/each}
     <h2>G Keybindings</h2>
     <p>
-        "G Keybindings" always are prefixed with lowercase <K>g</K>
+        "G Keybindings" always are prefixed with lowercase
+        <K>g</K>
         You must hit the second key within {G_DOUBLE_TIME} milliseconds.
-        Most have a mnemonic to help memorize. <K>gg</K> and <K>G</K>
+        Most have a mnemonic to help memorize.
+        <K>gg</K>
+        and
+        <K>G</K>
     </p>
     {#each gKeyFunctionInfos as gkfi}
         <KeyFunctionDescription key={`g${gkfi.key}`} description={gkfi.description} />
@@ -50,13 +61,15 @@
 </div>
 
 <style lang="scss">
-  @import '../colors';
-  @import '../containers';
+  @import '../assets/colors';
+  @import '../assets/mixins';
 
   .readme-container {
-    width: 100%;
+    @include system-font;
     display: flex;
     flex-direction: column;
+    color: $kh-light;
+    padding: 0 15px 50px 15px;
   }
 
   .li {
@@ -67,7 +80,7 @@
     }
   }
 
-  h2 {
+  h1, h2 {
     @include border-hr;
     text-align: center;
     margin: 15px 0 5px;

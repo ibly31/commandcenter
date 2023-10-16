@@ -38,7 +38,7 @@
 </div>
 
 <style lang="scss">
-    @import '../colors';
+    @import '../assets/colors';
 
     .container {
         display: flex;

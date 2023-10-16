@@ -3,16 +3,20 @@ import Readme from './Readme.svelte';
 
 </script>
 
-<div class="popup-container">
-    <h1>CommandCenter</h1>
-    <Readme />
-</div>
+<Readme />
 
 <style lang="scss">
-    @import '../colors.scss';
-    @import '../containers.scss';
+    @import '../assets/colors';
+    @import '../assets/mixins';
 
-    .popup-container {
+    body {
+      margin: 0;
+      width: 550px;
+      height: 600px;
+      background-color: #202124;
+    }
+
+    .options-container {
         @include system-font;
         color: $kh-light;
         padding: 0 15px 50px 15px;

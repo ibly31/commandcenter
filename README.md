@@ -4,6 +4,7 @@
 
 ## Todo
 - Make removal of tabs update the index of each item
+- Favicon cache and overrides so it doesn't spam with failed network requests off VPN
 
 ## Development
 

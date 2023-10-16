@@ -37,22 +37,22 @@ export const G_KEY_MAP: KeyMap = {
         sendMessage(Msg.duplicateTab);
     }),
     ...makeKeyFunction('r', 'Open CommandCenter overlay on current page', () => {
-        postActionMessage(Action.openCommandCenter)
+        postActionMessage(Action.openCommandCenter);
     }),
     ...makeKeyFunction('t', 'Open TabCenter overlay on current page', () => {
-        postActionMessage(Action.openTabCenter)
+        postActionMessage(Action.openTabCenter);
     }),
-    ...makeKeyFunction('0', 'Move current tab all the way to the left, after pinned tabs', () => {
-        postActionMessage(Action.openTabCenter)
+    ...makeKeyFunction('0', 'Move current tab all the way to the left', () => {
+        sendMessage({ moveTabOffset: '0' });
     }),
     ...makeKeyFunction('$', 'Move current tab all the way to the right', () => {
-        postActionMessage(Action.openTabCenter)
+        sendMessage({ moveTabOffset: '$' });
     }),
 };
 
 export const KEY_MAP: KeyMap = {
     ...makeKeyFunction('G', 'Scroll to bottom of page', () => {
-        postActionMessage(Action.openTabCenter)
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }),
     ...makeKeyFunction('r', 'Reload page', () => {
         window.location.reload();
@@ -99,15 +99,20 @@ export function setupVimKeys() {
             key = key.toUpperCase();
         }
 
+        // Special case for g$ also accepting g4
+        if (key === '4') {
+            key = '$';
+        }
+
         if (key === 'g' && !withinDoubleTime()) {
             LAST_G_TIME = Number(new Date());
         } else if (key in G_KEY_MAP) {
             if (withinDoubleTime()) {
-                G_KEY_MAP[key]();
+                G_KEY_MAP[key]()[1]();
                 LAST_G_TIME = 0;
             }
         } else if (key in KEY_MAP) {
-            KEY_MAP[key]();
+            KEY_MAP[key]()[1]();
         }
     });
 }

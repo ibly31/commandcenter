@@ -54,9 +54,13 @@ chrome.runtime.onMessage.addListener(
                 });
             });
         } else if (message.moveTabOffset !== undefined) {
-            chrome.tabs.move(senderTab.id, {
-                index: senderTab.index + message.moveTabOffset
-            });
+            let index;
+            if (typeof message.moveTabOffset === 'string') {
+                index = message.moveTabOffset === '0' ? 0 : 123231123;
+            } else {
+                index = message.moveTabOffset as number;
+            }
+            chrome.tabs.move(senderTab.id, { index });
         }
         return true;
     }

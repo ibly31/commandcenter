@@ -9,7 +9,7 @@
 </span>
 
 <style lang="scss">
-    @import '../colors';
+    @import '../assets/colors';
 
     $size: 24px;
 

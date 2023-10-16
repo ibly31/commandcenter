@@ -14,7 +14,7 @@ export const Msg = {
 export type Message = {
     switchToTabId?: number;
     removeTabId?: number;
-    moveTabOffset?: number;
+    moveTabOffset?: number | string;
     reopenTab?: TabInfo;
 
     directive?: keyof typeof Msg;

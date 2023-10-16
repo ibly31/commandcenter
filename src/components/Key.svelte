@@ -1,9 +1,16 @@
-<code>
+<script lang="ts">
+    export let small = false;
+
+    const lineHeight = small ? 11 : 15;
+    const height = small ? 10 : 15;
+</script>
+
+<code style="line-height: {lineHeight}px; height: {height}px">
     <slot />
 </code>
 
 <style lang="scss">
-  @import '../colors';
+  @import '../assets/colors';
   code {
     display: inline-block;
     white-space: pre-wrap;

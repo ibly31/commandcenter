@@ -12,7 +12,7 @@
 </div>
 
 <style lang="scss">
-    @import '../containers';
+    @import '../assets/mixins';
 
     .key-function-info {
         display: flex;

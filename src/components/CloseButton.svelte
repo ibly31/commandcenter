@@ -7,7 +7,7 @@
 <span class="close-button" on:click={() => onClick()} />
 
 <style lang="scss">
-    @import '../colors';
+    @import '../assets/colors';
 
     $size: 24px;
     $half-size: calc($size / 2);

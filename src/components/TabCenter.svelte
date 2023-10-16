@@ -181,8 +181,8 @@
 </div>
 
 <style lang="scss">
-    @import '../colors';
-    @import '../containers';
+    @import '../assets/colors';
+    @import '../assets/mixins';
 
     @mixin list-border {
         border: 1px solid $kh-gray;
