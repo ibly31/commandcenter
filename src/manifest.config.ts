@@ -1,27 +1,19 @@
 import { defineManifest } from "@crxjs/vite-plugin";
-import packageJson from "../package.json";
+import { version, description } from "../package.json";
 
-const { version, name, description } = packageJson;
+const name = 'CommandCenter';
 
-// Convert from Semver (example: 0.1.0-beta6)
-const [major, minor, patch] = version
-    // can only contain digits, dots, or dash
-    .replace(/[^\d.-]+/g, "")
-    // split into version parts
-    .split(/[.-]/);
+const icons = [16, 32, 48, 128].reduce((map, res) => {
+    return { ...map, [res.toString()]: `src/assets/icons/icon-${res}.png` };
+}, {});
 
 export default defineManifest(async (env) => ({
     manifest_version: 3,
-    name: name,
-    description: description,
-    version: `${major}.${minor}.${patch}`,
+    name,
+    description,
+    version,
     version_name: version,
-    icons: {
-        "16": "src/assets/icons/icon-16.png",
-        "32": "src/assets/icons/icon-32.png",
-        "48": "src/assets/icons/icon-48.png",
-        "128": "src/assets/icons/icon-128.png",
-    },
+    icons,
     chrome_url_overrides: {
         newtab: "src/newtab/newtab.html"
     },
@@ -31,10 +23,6 @@ export default defineManifest(async (env) => ({
             js: ["src/content/index.ts", "src/content/commandcenter.ts"],
         },
     ],
-    // web_accessible_resources: [
-    //     {}
-    //     "font/*.woff2"
-    // ],
     background: {
         service_worker: "src/background/index.ts",
     },
@@ -44,22 +32,12 @@ export default defineManifest(async (env) => ({
     },
     action: {
         default_popup: "src/popup/popup.html",
-        default_icon: {
-            "16": "src/assets/icons/icon-16.png",
-            "32": "src/assets/icons/icon-32.png",
-            "48": "src/assets/icons/icon-48.png",
-            "128": "src/assets/icons/icon-128.png",
-        },
+        default_icon: icons,
     },
     permissions: [
         "bookmarks",
         "history",
         "storage",
-        "sessions",
-        "downloads",
-        "topSites",
-        "clipboardRead",
-        "clipboardWrite",
         "tabs"
     ] as chrome.runtime.ManifestPermissions[],
 }));

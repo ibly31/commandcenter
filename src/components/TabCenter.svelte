@@ -62,12 +62,22 @@
         selectedIndex = Math.max(0, Math.min(selectedIndex, queryTabs.length - 1));
     }
 
+    function isTabRemovable(tab: TabInfo) {
+        if (tab.pinned) {
+            return false;
+        }
+        if (tab.url === window.location.href) {
+            return false;
+        }
+        return true;
+    }
+
     function removeTab(tabId: string) {
         if (!tabId) return;
         const tabIndex = currentTabs.findIndex(currentTab => currentTab.id === tabId);
         if (tabIndex !== -1) {
             const tab = currentTabs[tabIndex];
-            if (tab.pinned) {
+            if (!isTabRemovable(tab)) {
                 return;
             }
             const closedTab = currentTabs.splice(tabIndex, 1)[0];
@@ -170,7 +180,7 @@
                         indices={tab.matchIndices}
                 />
             </span>
-            {#if tab.pinned}
+            {#if !isTabRemovable(tab)}
                 <TabPinnedButton onClick={() => toggleTabPinned(tab.id)} />
             {:else}
                 <CloseButton onClick={() => removeTab(tab.id)} />

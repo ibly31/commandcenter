@@ -3,8 +3,16 @@
 > Fuzzy search through bookmarks, commands and tabs. Accessible via New Tab or on any page with configured keybindings
 
 ## Todo
+- `history` permission - can we index history and add them as commands like bookmarks?
+- Perhaps a `pr` command that indexes recent history for only github.com/*/*/pull/*? 
+- If TabCenter deletes the current tab, maybe find a way to open NewTab to TabCenter in same index and continue?
+    - Alternately, disallow deleting current tab
 - Make removal of tabs update the index of each item
 - Favicon cache and overrides so it doesn't spam with failed network requests off VPN
+- Figure out deploying to Chrome Web Store
+- GitHub Actions
+    - Action to build dist.zip as a Release?
+    - Action to deploy build to Chrome Web Store
 
 ## Development
 
