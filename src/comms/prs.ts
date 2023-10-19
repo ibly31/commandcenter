@@ -6,15 +6,19 @@ export type PR = {
     title: string;
     lastVisitTime: number;
     visitCount: number;
+
+    // ${repo}: ${title}
+    searchEntry: string;
 };
 
 export type PRMessageResponse = {
     prs: PR[];
 }
 
-const urlRe = /^https:\/\/github.com\/(?<org>\w+)\/(?<repo>[\w-]+)\/pull\/(?<id>\d+)/;
+const urlRe = /^(?<url>https:\/\/github.com\/(?<org>\w+)\/(?<repo>[\w-]+)\/pull\/(?<id>\d+))/;
 const titleRe = /^(?<title>.+?) ·/;
-export function makePR(item: chrome.history.HistoryItem): PR | null {
+
+function makePR(item: chrome.history.HistoryItem): PR | null {
     const urlMatch = item.url?.match(urlRe);
     if (!urlMatch?.groups) {
         return null;
@@ -33,18 +37,34 @@ export function makePR(item: chrome.history.HistoryItem): PR | null {
         repo,
         title,
         lastVisitTime: item.lastVisitTime!,
-        visitCount: item.visitCount!
+        visitCount: item.visitCount!,
+        searchEntry: `${repo}: ${title}`
     };
 }
 
-export async function getPRs(): Promise<PR[]> {
+const maxPRs = 50;
+const maxSearchResults = 1000;
+
+export async function getPRs(githubUsername: string): Promise<PR[]> {
     const items = await chrome.history.search({
         startTime: 0,
-        text: 'github.com pull',
-        maxResults: 1000
+        text: `github.com pull request by ${githubUsername}`,
+        maxResults: maxSearchResults
     });
+    const seenCompositeIds: Set<string> = new Set();
     return items
         .map(makePR)
         .filter(pr => pr !== null)
-        .map(pr => pr!);
+        .map(pr => pr!)
+        .filter(pr => {
+            const { org, repo, id } = pr;
+            const compositeId = `${org}/${repo}/${id}`;
+            if (seenCompositeIds.has(compositeId)) {
+                return false;
+            }
+            seenCompositeIds.add(compositeId);
+            return true;
+        })
+        .sort((a, b) => a.lastVisitTime - b.lastVisitTime)
+        .slice(0, maxPRs);
 }

@@ -107,7 +107,7 @@ function flattenTree(data: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmark
     }, [])
 }
 
-function faviconUrl(link?: string): string {
+export function faviconUrl(link?: string): string {
     link = link!;
     if (link.includes('https')) {
         if (!link.includes('lcloud.com')) {

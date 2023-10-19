@@ -36,10 +36,6 @@ chrome.runtime.onMessage.addListener(
                 sendResponse({
                     closedTabCommands: getClosedTabCommands()
                 });
-            } else if (message.directive === Msg.loadPRs) {
-                sendResponse({
-                    prs: getPRs()
-                });
             }
         } else if (message.switchToTabId !== undefined) {
             chrome.tabs.update(message.switchToTabId, { active: true });
@@ -66,6 +62,8 @@ chrome.runtime.onMessage.addListener(
                 index = message.moveTabOffset as number;
             }
             chrome.tabs.move(senderTab.id, { index });
+        } else if (message.loadPRsForGithubUsername) {
+            getPRs(message.loadPRsForGithubUsername).then(prs => sendResponse({ prs }));
         }
         return true;
     }

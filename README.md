@@ -5,6 +5,7 @@
 ## Todo
 - `history` permission - can we index history and add them as commands like bookmarks?
 - Perhaps a `pr` command that indexes recent history for only github.com/*/*/pull/*? 
+- Reset storage.ts default username to empty string
 - If TabCenter deletes the current tab, maybe find a way to open NewTab to TabCenter in same index and continue?
     - Alternately, disallow deleting current tab
 - Make removal of tabs update the index of each item

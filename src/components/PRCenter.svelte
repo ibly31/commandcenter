@@ -1,7 +1,8 @@
 <script lang="ts">
     import HighlightText from './HighlightText.svelte';
     import { Fzf, type FzfResultItem } from 'fzf';
-    import { Msg, sendMessage } from '../comms/messages';
+    import { type IStorage, storage } from '../storage';
+    import { sendMessage } from '../comms/messages';
     import type { PR, PRMessageResponse } from '../comms/prs';
     import { offsetSelectedIndex, switchToTab } from './utils';
 
@@ -15,13 +16,21 @@
     }
 
     /** State */
+    let githubUsername = '';
     let query = '';
     let tabInputRef: HTMLInputElement;
     let selectedIndex = 0;
 
     let prs: PR[] = [];
 
-    sendMessage(Msg.loadPRs, (response: PRMessageResponse) => {
+    storage.get().then((storage: IStorage) => {
+        githubUsername = storage.githubUsername;
+    });
+
+    $: sendMessage({
+        loadPRsForGithubUsername: githubUsername
+    }, (response: PRMessageResponse) => {
+        console.log('rcv response', response);
         prs = response.prs ?? [];
     });
 
@@ -36,7 +45,7 @@
     }
 
     function searchSelector(pr: PR): string {
-        return pr.title.replaceAll('-', ' ');
+        return pr.searchEntry.replaceAll('-', ' ');
     }
 
     function searchPRs(prs: PR[], search: string): PR[] {
@@ -55,13 +64,9 @@
         return b.item.lastVisitTime - a.item.lastVisitTime;
     }
 
-    function openPR(prId: string) {
+    function openPR(prId: number) {
         if (!prId) return;
-        if (renderingInPage) {
-            sendMessage({ switchToTabId: Number(tabId )});
-        } else {
-            chrome.tabs.update(Number(tabId), { active: true });
-        }
+        // switchToTab(Number(prId));
     }
 
     function handleInputKey(event: KeyboardEvent) {
@@ -92,38 +97,44 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="prs-container" class:large-width={largeWidth} on:click|stopPropagation>
-    <!-- svelte-ignore a11y-autofocus -->
-    <div class="input-container">
-        <input class="pr-input"
-               bind:this={tabInputRef}
-               bind:value={query}
-               on:keydown={handleInputKey}
-               spellcheck="false"
-               autocomplete="false"
-               placeholder="Search prs..."
-               maxlength="20"
-               autofocus
-        >
-    </div>
-    <div class="prs-list">
-    {#each queryPRs as pr, index (pr.id)}
-        <div
-           class="pr"
-           class:selected={index === selectedIndex}
-           on:click={() => switchToTab(pr.id, renderingInPage)}
-        >
-            <span class="pr-icon">
-                <img src={pr.favIconUrl} alt={pr.title} />
-            </span>
-            <span class="pr-highlight-texts">
-                <HighlightText
-                        text={pr.title}
-                        indices={pr.matchIndices}
-                />
-            </span>
+    {#if !githubUsername}
+        <div class="error-container">
+            No configured Github Username - visit the extension Options
         </div>
-    {/each}
-    </div>
+    {:else}
+        <!-- svelte-ignore a11y-autofocus -->
+        <div class="input-container">
+            <input class="pr-input"
+                   bind:this={tabInputRef}
+                   bind:value={query}
+                   on:keydown={handleInputKey}
+                   spellcheck="false"
+                   autocomplete="false"
+                   placeholder="Search Pull Requests..."
+                   maxlength="20"
+                   autofocus
+            >
+        </div>
+        <div class="prs-list">
+            {#each queryPRs as pr, index (pr.id)}
+                <a href={pr.url}
+                   class="pr"
+                   class:selected={index === selectedIndex}
+                   on:click={() => openPR(pr.id)}
+                >
+                    <span class="pr-icon">
+                        <img src="https://github.githubassets.com/favicons/favicon-dark.svg" alt={pr.title} />
+                    </span>
+                    <span class="pr-highlight-texts">
+                        <HighlightText
+                                text={pr.searchEntry}
+                                indices={pr.matchIndices}
+                        />
+                    </span>
+                </a>
+            {/each}
+        </div>
+    {/if}
 </div>
 
 <style lang="scss">
@@ -134,6 +145,14 @@
         border: 1px solid $kh-gray;
         border-left: none;
         border-right: none;
+    }
+
+    .error-container {
+        display: flex;
+        justify-content: center;
+        text-align: center;
+        font-size: 36px;
+        color: $kh-white;
     }
 
     .prs-container {
@@ -180,7 +199,6 @@
 
             .pr {
                 @include list-border;
-                position: relative;
                 display: flex;
                 align-items: center;
                 padding: 5px 0;

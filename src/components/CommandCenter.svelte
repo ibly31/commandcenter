@@ -14,6 +14,7 @@
     import { type CommandMessageResponse, Msg, sendMessage } from '../comms/messages';
     import { offsetSelectedIndex, switchToTab } from './utils';
 
+    const EXACT_ID_PRC = 'prc';
     const EXACT_ID_TC = 'tc';
     const EXACT_ID_GE = 'ge';
 
@@ -45,10 +46,18 @@
     let exactCommands: Command[] = [
         {
             type: CommandType.EXACT,
+            id: EXACT_ID_PRC,
+            icon: DEFAULT_FAVICON_URL,
+            url: '',
+            title: 'prc - PR Center',
+            sortDate: 0
+        },
+        {
+            type: CommandType.EXACT,
             id: EXACT_ID_TC,
             icon: DEFAULT_FAVICON_URL,
             url: '',
-            title: 'tc - Tab Controller',
+            title: 'tc - Tab Center',
             sortDate: 0
         },
         {
@@ -88,8 +97,8 @@
         const seenIds = new Set();
         return results.map(item => {
             const positivePositions = Array.from(item.positions ?? [])
-                .map(pos => pos - MAX_COMMAND_TYPE_LABEL_LENGTH - 1)
-                .filter(pos => pos >= 0);
+                    .map(pos => pos - MAX_COMMAND_TYPE_LABEL_LENGTH - 1)
+                    .filter(pos => pos >= 0);
             return { ...item.item, matchIndices: new Set(positivePositions) };
         }).filter(command => {
             if (seenIds.has(command.id)) {
@@ -120,7 +129,9 @@
         if (command.type === CommandType.CURRENT_TAB) {
             switchToTab(command.id, renderingInPage);
         } else if (command.type === CommandType.EXACT) {
-            if (command.id === EXACT_ID_TC) {
+            if (command.id === EXACT_ID_PRC) {
+                switchModeHandler?.(Mode.PR_CENTER);
+            } else if (command.id === EXACT_ID_TC) {
                 switchModeHandler?.(Mode.TAB_CENTER);
             } else if (command.id === EXACT_ID_GE) {
                 sendMessage(Msg.openExtensions);
@@ -144,8 +155,8 @@
         if (loading) {
             if (key === 'Escape') {
                 window.stop();
-            loading = false;
-        }
+                loading = false;
+            }
             return;
         }
         if (key === 'Tab') {
@@ -170,7 +181,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="commands-container" class:large-width={largeWidth} on:click|stopPropagation>
     <div class="input-container" class:loading={loading}>
-    <!-- svelte-ignore a11y-autofocus -->
+        <!-- svelte-ignore a11y-autofocus -->
         <input class="command-input"
                bind:this={commandInputRef}
                bind:value={query}
@@ -186,23 +197,23 @@
         {/if}
     </div>
     <div class="commands-list">
-    {#each queryCommands as command, index (command.id)}
-        <a href={command.url}
-           class="command"
-           class:selected={index === selectedIndex}
-           on:click|preventDefault={() => doCommand(index)}
-        >
+        {#each queryCommands as command, index (command.id)}
+            <a href={command.url}
+               class="command"
+               class:selected={index === selectedIndex}
+               on:click|preventDefault={() => doCommand(index)}
+            >
             <span class="command-icon">
                 <img src={command.icon} alt={command.title} />
             </span>
-            <CommandTypeBadge type={command.type} />
-            <span class="command-highlight-texts">
+                <CommandTypeBadge type={command.type} />
+                <span class="command-highlight-texts">
                 <HighlightText
                         text={command.title}
                         shouldHighlight={!command.isSearchUrl}
                         indices={command.matchIndices}
                 />
-                {#if command.url?.length}
+                    {#if command.url?.length}
                 <HighlightText
                         text={command.url}
                         shouldHighlight={command.isSearchUrl}
@@ -210,8 +221,8 @@
                 />
                 {/if}
             </span>
-        </a>
-    {/each}
+            </a>
+        {/each}
     </div>
 </div>
 
@@ -269,8 +280,8 @@
                 }
 
                 &:focus-visible {
-                  box-shadow: none;
-                  outline: none !important;
+                    box-shadow: none;
+                    outline: none !important;
                 }
             }
 

@@ -9,7 +9,6 @@ export const Msg = {
     loadAllCommands: 'loadAllCommands',
     loadClosedTabCommands: 'loadClosedTabCommands',
     loadCurrentTabs: 'loadCurrentTabs',
-    loadPRs: 'loadPRs',
 };
 
 export type Message = {
@@ -17,6 +16,7 @@ export type Message = {
     removeTabId?: number;
     moveTabOffset?: number | string;
     reopenTab?: TabInfo;
+    loadPRsForGithubUsername?: string;
 
     directive?: keyof typeof Msg;
 };

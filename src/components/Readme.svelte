@@ -1,7 +1,31 @@
 <script lang="ts">
     import KeyFunctionDescription from './KeyFunctionDescription.svelte';
     import K from './Key.svelte';
+    import { type IStorage, storage } from '../storage';
     import { G_DOUBLE_TIME, G_KEY_MAP, KEY_MAP, type KeyMap } from '../content/vimKeys';
+
+    /** State */
+
+    let githubUsername = '';
+    storage.get().then((storage: IStorage) => {
+        githubUsername = storage.githubUsername;
+    });
+
+    function saveGithubUsername() {
+        storage.set({ githubUsername });
+    }
+
+    let timer: number;
+    const handleGithubUsernameKey = (event: KeyboardEvent) => {
+        clearTimeout(timer)
+        if (event.key === 'Enter') {
+            saveGithubUsername();
+            return;
+        }
+        timer = setTimeout(() => {
+            saveGithubUsername();
+        }, 300)
+    }
 
     type KeyFunctionInfo = {
         key: string;
@@ -58,37 +82,91 @@
     {#each gKeyFunctionInfos as gkfi}
         <KeyFunctionDescription key={`g${gkfi.key}`} description={gkfi.description} />
     {/each}
+    <h2>Settings</h2>
+    <div class="setting-input">
+        <label for="githubUsername">GitHub Username:</label>
+        <input name="githubUsername"
+               bind:value={githubUsername}
+               on:keydown={handleGithubUsernameKey}
+               spellcheck="false"
+               autocomplete="false"
+               placeholder="GitHub Username"
+               minlength="3"
+               maxlength="40"
+               required
+        >
+    </div>
 </div>
 
 <style lang="scss">
-  @import '../assets/colors';
-  @import '../assets/mixins';
+    @import '../assets/colors';
+    @import '../assets/mixins';
 
-  .readme-container {
-    @include system-font;
-    display: flex;
-    flex-direction: column;
-    color: $kh-light;
-    padding: 0 15px 50px 15px;
-  }
-
-  .li {
-    margin: 3px;
-
-    &:before {
-      content: "•  "
+    .readme-container {
+        @include system-font;
+        display: flex;
+        flex-direction: column;
+        color: $kh-light;
+        padding: 0 15px 50px 15px;
     }
-  }
 
-  h1, h2 {
-    @include border-hr;
-    text-align: center;
-    margin: 15px 0 5px;
-  }
+    .li {
+        margin: 3px;
 
-  p {
-    font-size: 15px;
-    padding: 0 10px;
-    margin: 10px 0;
-  }
+        &:before {
+            content: "•  "
+        }
+    }
+
+    .setting-input {
+        @include system-font;
+        display: flex;
+        height: 45px;
+        align-items: baseline;
+        font-size: 15px;
+
+        label {
+            margin-right: 10px;
+        }
+
+        input {
+            margin-top: 5px;
+            padding: 10px 10px;
+            font-size: 15px;
+            color: $kh-black;
+            background-color: $kh-white;
+            border: 1px solid $kh-silver;
+            border-radius: 5px;
+            flex-grow: 1;
+
+            &:invalid {
+                border: 1px solid $kh-red;
+            }
+        }
+        //button {
+        //    width: 70px;
+        //    padding: 12px;
+        //    margin-left: 10px;
+        //    background-color: $kh-success;
+        //    color: $kh-black;
+        //    border-radius: 5px;
+        //    border: none;
+        //
+        //    &:active {
+        //        background-color: $kh-green;
+        //    }
+        //}
+    }
+
+    h1, h2 {
+        @include border-hr;
+        text-align: center;
+        margin: 15px 0 5px;
+    }
+
+    p {
+        font-size: 15px;
+        padding: 0 10px;
+        margin: 10px 0;
+    }
 </style>
