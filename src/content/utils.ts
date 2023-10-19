@@ -63,5 +63,5 @@ export function isFocusedOnInput() {
     if (INPUT_ELEMENTS.includes(active.tagName.toLowerCase())) {
         return true;
     }
-    return INPUT_ROLES.includes(active.getAttribute('role') ?? '');
+    return INPUT_ROLES.includes(active.getAttribute('role')!);
 }

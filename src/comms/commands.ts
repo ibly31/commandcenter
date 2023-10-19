@@ -1,9 +1,9 @@
-import BookmarkTreeNode = chrome.bookmarks.BookmarkTreeNode;
 import { Msg, sendMessage } from '../comms/messages';
 
 export enum Mode {
     COMMAND_CENTER = 'COMMAND_CENTER',
-    TAB_CONTROLLER = 'TAB_CONTROLLER'
+    TAB_CENTER = 'TAB_CENTER',
+    PR_CENTER = 'PR_CENTER'
 }
 
 export enum CommandType {
@@ -55,8 +55,8 @@ function currentTabsToCommands(tabs: chrome.tabs.Tab[]): Command[] {
             type: CommandType.CURRENT_TAB,
             id: id,
             icon: tab.favIconUrl ?? DEFAULT_FAVICON_URL,
-            url: tab.url ?? '',
-            title: tab.title ?? '',
+            url: tab.url!,
+            title: tab.title!,
             sortDate: index
         };
     })
@@ -72,7 +72,7 @@ export async function loadBookmarkCommands(): Promise<Command[]> {
     return bookmarksToCommands(await chrome.bookmarks.getTree());
 }
 
-function bookmarksToCommands(rootNode: BookmarkTreeNode[]): Command[] {
+function bookmarksToCommands(rootNode: chrome.bookmarks.BookmarkTreeNode[]): Command[] {
     const bookmarksBar = rootNode[0]?.children?.filter(node => node.title === 'Bookmarks Bar');
     const flattened = flattenTree(bookmarksBar[0]?.children);
     flattened.sort((a, b) => Number(a.id) - Number(b.id));
@@ -92,14 +92,14 @@ function bookmarksToCommands(rootNode: BookmarkTreeNode[]): Command[] {
                 type: CommandType.BOOKMARK,
                 id: `${CommandType.BOOKMARK}-${bm.id}`,
                 icon: faviconUrl(bm.url),
-                url: bm.url ?? '',
+                url: bm.url!,
                 title: fullTitleMap[bm.id],
                 sortDate
             };
         });
 }
 
-function flattenTree(data: BookmarkTreeNode[]): BookmarkTreeNode[] {
+function flattenTree(data: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {
     return data.reduce((r, { children, ...rest }) => {
         r.push(rest);
         children && r.push(...flattenTree(children));
@@ -108,7 +108,7 @@ function flattenTree(data: BookmarkTreeNode[]): BookmarkTreeNode[] {
 }
 
 function faviconUrl(link?: string): string {
-    link = link ?? '';
+    link = link!;
     if (link.includes('https')) {
         if (!link.includes('lcloud.com')) {
             return `https://www.google.com/s2/favicons?domain=${link}&sz=128`;

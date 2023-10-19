@@ -5,7 +5,8 @@ import {
     loadCurrentTabCommands,
 } from '../comms/commands';
 import { type CommandMessageResponse, type Message, Msg } from '../comms/messages';
-import { chromeTabToTabInfo, loadCurrentTabs, makeSenderTab, type TabInfo } from '../comms/tabs';
+import { loadCurrentTabs, makeSenderTab, type TabInfo } from '../comms/tabs';
+import { getPRs } from '../comms/prs';
 
 // chrome.runtime.onInstalled.addListener(() => {
 //      storage.get().then(console.log);
@@ -34,6 +35,10 @@ chrome.runtime.onMessage.addListener(
             } else if (message.directive === Msg.loadClosedTabCommands) {
                 sendResponse({
                     closedTabCommands: getClosedTabCommands()
+                });
+            } else if (message.directive === Msg.loadPRs) {
+                sendResponse({
+                    prs: getPRs()
                 });
             }
         } else if (message.switchToTabId !== undefined) {
@@ -78,11 +83,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         } = tab;
         if (id && url?.startsWith('https')) {
             tabs[id] = {
-                url: url ?? '',
-                title: title ?? '',
-                id: id?.toString() ?? '',
+                url: url!,
+                title: title!,
+                id: id?.toString()!,
                 index: index,
-                favIconUrl: favIconUrl ?? '',
+                favIconUrl: favIconUrl!,
                 pinned: tab.pinned,
                 closeDate: 0
             };

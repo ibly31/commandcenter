@@ -9,6 +9,7 @@ export const Msg = {
     loadAllCommands: 'loadAllCommands',
     loadClosedTabCommands: 'loadClosedTabCommands',
     loadCurrentTabs: 'loadCurrentTabs',
+    loadPRs: 'loadPRs',
 };
 
 export type Message = {

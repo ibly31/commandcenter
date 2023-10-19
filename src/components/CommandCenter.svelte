@@ -12,6 +12,7 @@
         padCommandTypeLabel,
     } from '../comms/commands';
     import { type CommandMessageResponse, Msg, sendMessage } from '../comms/messages';
+    import { offsetSelectedIndex, switchToTab } from './utils';
 
     const EXACT_ID_TC = 'tc';
     const EXACT_ID_GE = 'ge';
@@ -112,50 +113,30 @@
         return b.item.sortDate - a.item.sortDate;
     }
 
-    function switchToTabId(tabId: string) {
-        if (renderingInPage) {
-            sendMessage({ switchToTabId: Number(tabId)});
-        } else {
-            chrome.tabs.update(Number(tabId), { active: true });
-            closeWindow();
-        }
-    }
-
     function doCommand(index: number, metaKey?: boolean) {
         loading = true;
 
         const command = queryCommands[index];
         if (command.type === CommandType.CURRENT_TAB) {
-            switchToTabId(command.id);
+            switchToTab(command.id, renderingInPage);
         } else if (command.type === CommandType.EXACT) {
             if (command.id === EXACT_ID_TC) {
-                switchModeHandler?.(Mode.TAB_CONTROLLER);
+                switchModeHandler?.(Mode.TAB_CENTER);
             } else if (command.id === EXACT_ID_GE) {
-                sendMessage('qwerqwer');
-                closeWindow();
+                sendMessage(Msg.openExtensions);
+                !renderingInPage && window.close();
             }
         } else {
             const existingTab = currentTabCommands.find(tabCommand => tabCommand.url === command.url);
             // If Cmd-Enter, never reuse an existing tab
             if (!metaKey && existingTab) {
-                switchToTabId(existingTab.id);
+                switchToTab(existingTab.id, renderingInPage);
             } else {
                 window.location.href = command.url;
             }
         }
 
         renderingInPage && escapeHandler();
-    }
-
-    function closeWindow() {
-        if (!renderingInPage) {
-            window.close();
-        }
-    }
-
-    function offsetSelectedIndex(offset: number) {
-        selectedIndex = selectedIndex + offset;
-        selectedIndex = Math.max(0, Math.min(selectedIndex, queryCommands.length - 1));
     }
 
     function handleInputKey(event: KeyboardEvent) {
@@ -172,9 +153,9 @@
             key = event.shiftKey ? 'ArrowUp' : 'ArrowDown';
         }
         if (key === 'ArrowUp') {
-            offsetSelectedIndex(-1);
+            selectedIndex = offsetSelectedIndex(-1, selectedIndex, queryCommands.length);
         } else if (key === 'ArrowDown') {
-            offsetSelectedIndex(1);
+            selectedIndex = offsetSelectedIndex(1, selectedIndex, queryCommands.length);
         } else if (key === 'Enter' && queryCommands[selectedIndex]) {
             doCommand(selectedIndex, event.metaKey);
         } else if (key === 'Escape') {

@@ -1,10 +1,8 @@
 <script lang="ts">
     import HighlightText from './HighlightText.svelte';
-    import CloseButton from './CloseButton.svelte';
-    import TabPinnedButton from './TabPinnedButton.svelte';
     import { Fzf, type FzfResultItem } from 'fzf';
     import { Msg, sendMessage } from '../comms/messages';
-    import type { TabInfo, TabMessageResponse } from '../comms/tabs';
+    import type { PR, PRMessageResponse } from '../comms/prs';
     import { offsetSelectedIndex, switchToTab } from './utils';
 
     /** Props */
@@ -21,77 +19,49 @@
     let tabInputRef: HTMLInputElement;
     let selectedIndex = 0;
 
-    let currentTabs: TabInfo[] = [];
-    let closedTabs: TabInfo[] = [];
+    let prs: PR[] = [];
 
-    sendMessage(Msg.loadCurrentTabs, (response: TabMessageResponse) => {
-        currentTabs = response.currentTabs ?? [];
+    sendMessage(Msg.loadPRs, (response: PRMessageResponse) => {
+        prs = response.prs ?? [];
     });
 
     $: if (query) {
         selectedIndex = 0;
     }
 
-    let queryTabs: TabInfo[];
+    let queryPRs: PR[];
     $: {
-        queryTabs = searchTabs(currentTabs, query);
-        selectedIndex = offsetSelectedIndex(0, selectedIndex, queryTabs.length);
+        queryPRs = searchPRs(prs, query);
+        selectedIndex = offsetSelectedIndex(0, selectedIndex, queryPRs.length);
     }
 
-    function searchSelector(tab: TabInfo): string {
-        return tab.title.replaceAll('-', ' ');
+    function searchSelector(pr: PR): string {
+        return pr.title.replaceAll('-', ' ');
     }
 
-    function searchTabs(tabs: TabInfo[], search: string): TabInfo[] {
-        const fzf = new Fzf(tabs, {
+    function searchPRs(prs: PR[], search: string): PR[] {
+        const fzf = new Fzf(prs, {
             selector: searchSelector,
             tiebreakers: [dateTieBreaker]
         });
 
-        const results: FzfResultItem<TabInfo>[] = fzf.find(search.replaceAll(' ', ''));
+        const results: FzfResultItem<PR>[] = fzf.find(search.replaceAll(' ', ''));
         return results.map(item => {
             return { ...item.item, matchIndices: item.positions };
-        }).sort((a, b) => a.index - b.index);
-    }
-
-    function dateTieBreaker(a: FzfResultItem<TabInfo>, b: FzfResultItem<TabInfo>): number {
-        return b.item.sortDate - a.item.sortDate;
-    }
-
-    function isTabRemovable(tab: TabInfo) {
-        if (tab.pinned) {
-            return false;
-        }
-        if (tab.url === window.location.href) {
-            return false;
-        }
-        return true;
-    }
-
-    function removeTab(tabId: string) {
-        if (!tabId) return;
-        const tabIndex = currentTabs.findIndex(currentTab => currentTab.id === tabId);
-        if (tabIndex !== -1) {
-            const tab = currentTabs[tabIndex];
-            if (!isTabRemovable(tab)) {
-                return;
-            }
-            const closedTab = currentTabs.splice(tabIndex, 1)[0];
-            currentTabs = [...currentTabs];
-            sendMessage({ removeTabId: Number(tabId) });
-            closedTabs.push(closedTab);
-        }
-    }
-
-    function toggleTabPinned(tabId: string) {
-        console.log('Toggling tab pinned', tabId);
-    }
-
-    function reopenTab() {
-        const reopenTab: TabInfo = closedTabs.splice(closedTabs.length - 1, 1).at(0);
-        reopenTab && sendMessage({ reopenTab }, (response: TabMessageResponse) => {
-            currentTabs = response.currentTabs;
         });
+    }
+
+    function dateTieBreaker(a: FzfResultItem<PR>, b: FzfResultItem<PR>): number {
+        return b.item.lastVisitTime - a.item.lastVisitTime;
+    }
+
+    function openPR(prId: string) {
+        if (!prId) return;
+        if (renderingInPage) {
+            sendMessage({ switchToTabId: Number(tabId )});
+        } else {
+            chrome.tabs.update(Number(tabId), { active: true });
+        }
     }
 
     function handleInputKey(event: KeyboardEvent) {
@@ -101,13 +71,13 @@
             key = event.shiftKey ? 'ArrowUp' : 'ArrowDown';
         }
 
-        let tabId = selectedIndex in queryTabs ? queryTabs[selectedIndex]?.id : null;
+        let prId = selectedIndex in queryPRs ? queryPRs[selectedIndex]?.id : null;
         if (key === 'ArrowUp') {
-            selectedIndex = offsetSelectedIndex(-1, selectedIndex, queryTabs.length);
+            selectedIndex = offsetSelectedIndex(-1, selectedIndex, queryPRs.length);
         } else if (key === 'ArrowDown') {
-            selectedIndex = offsetSelectedIndex(1, selectedIndex, queryTabs.length);
+            selectedIndex = offsetSelectedIndex(1, selectedIndex, queryPRs.length);
         } else if (key === 'Enter') {
-            switchToTab(tabId, renderingInPage);
+            openPR(prId);
         } else if (key === 'Escape') {
             if (query) {
                 selectedIndex = 0;
@@ -115,56 +85,42 @@
             } else {
                 escapeHandler();
             }
-        } else if (key === 'Backspace') {
-            const isTextSelected = window.getSelection()?.type === 'Range';
-            if (!isTextSelected && queryTabs.length) {
-                event.preventDefault();
-                removeTab(tabId);
-            }
-        } else if (key === 'z' && event.metaKey) {
-            reopenTab();
-            event.preventDefault();
         }
     }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="tabs-container" class:large-width={largeWidth} on:click|stopPropagation>
+<div class="prs-container" class:large-width={largeWidth} on:click|stopPropagation>
     <!-- svelte-ignore a11y-autofocus -->
     <div class="input-container">
-        <input class="tab-input"
+        <input class="pr-input"
                bind:this={tabInputRef}
                bind:value={query}
                on:keydown={handleInputKey}
                spellcheck="false"
                autocomplete="false"
-               placeholder="Search tabs..."
+               placeholder="Search prs..."
                maxlength="20"
                autofocus
         >
     </div>
-    <div class="tabs-list">
-    {#each queryTabs as tab, index (tab.id)}
+    <div class="prs-list">
+    {#each queryPRs as pr, index (pr.id)}
         <div
-           class="tab"
+           class="pr"
            class:selected={index === selectedIndex}
-           on:click={() => switchToTab(tab.id, renderingInPage)}
+           on:click={() => switchToTab(pr.id, renderingInPage)}
         >
-            <span class="tab-icon">
-                <img src={tab.favIconUrl} alt={tab.title} />
+            <span class="pr-icon">
+                <img src={pr.favIconUrl} alt={pr.title} />
             </span>
-            <span class="tab-highlight-texts">
+            <span class="pr-highlight-texts">
                 <HighlightText
-                        text={tab.title}
-                        indices={tab.matchIndices}
+                        text={pr.title}
+                        indices={pr.matchIndices}
                 />
             </span>
-            {#if !isTabRemovable(tab)}
-                <TabPinnedButton onClick={() => toggleTabPinned(tab.id)} />
-            {:else}
-                <CloseButton onClick={() => removeTab(tab.id)} />
-            {/if}
         </div>
     {/each}
     </div>
@@ -180,7 +136,7 @@
         border-right: none;
     }
 
-    .tabs-container {
+    .prs-container {
         @include container-base;
         margin: 0;
         padding: 0;
@@ -195,7 +151,7 @@
             width: 100%;
             border-bottom: 3px solid $kh-silver;
 
-            .tab-input {
+            .pr-input {
                 padding: 15px 20px;
                 font-size: 24px;
                 color: $kh-white;
@@ -214,7 +170,7 @@
             }
         }
 
-        .tabs-list {
+        .prs-list {
             list-style-type: none;
             margin: 0;
             padding: 0;
@@ -222,7 +178,7 @@
             overflow-x: hidden;
             width: 100%;
 
-            .tab {
+            .pr {
                 @include list-border;
                 position: relative;
                 display: flex;
@@ -239,7 +195,7 @@
                     background-color: $kh-blue;
                 }
 
-                .tab-icon {
+                .pr-icon {
                     min-width: 30px;
                     margin-left: 10px;
                     display: flex;
@@ -252,7 +208,7 @@
                     }
                 }
 
-                .tab-highlight-texts {
+                .pr-highlight-texts {
                     margin-left: 10px;
                     display: flex;
                     flex-direction: column;

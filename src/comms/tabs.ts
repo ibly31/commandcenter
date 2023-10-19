@@ -31,8 +31,8 @@ export function chromeTabToTabInfo(tab: chrome.tabs.Tab): TabInfo {
     const id = (tab.id ?? -1).toString();
     return {
         id: id,
-        url: tab.url ?? '',
-        title: tab.title ?? '',
+        url: tab.url!,
+        title: tab.title!,
         favIconUrl: tab.favIconUrl || DEFAULT_FAVICON_URL,
         pinned: tab.pinned,
         index: tab.index
