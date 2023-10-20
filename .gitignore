@@ -5,6 +5,7 @@ node_modules/
 
 # Build directory
 dist/
+build/
 
 # TypeScript cache
 *.tsbuildinfo
