@@ -47,10 +47,11 @@ jobs:
       - name: Package build
         shell: bash
         run: |
-          mkdir -p build
           VERSION=$(cat package.json | grep '"version"' | awk '{ print $2 }' | sed 's/[",]//g')
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          zip -r -q "build/${VERSION}.zip" dist
+          ZIP_NAME="commandcenter-${VERSION}"
+          mv dist "$ZIP_NAME"
+          zip -r -q "build/${VERSION}.zip" "$ZIP_NAME"
 
       - name: Create Release
         run: gh release create ${{ env.VERSION }} ./build/${{ env.VERSION }}.zip --generate-notes
