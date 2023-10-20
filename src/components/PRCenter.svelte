@@ -10,7 +10,6 @@
     export let largeWidth = false;
     export let focusInputRef = false;
     export let escapeHandler: () => void;
-    export let renderingInPage: boolean;
     $: if (focusInputRef) {
         tabInputRef?.focus();
     }

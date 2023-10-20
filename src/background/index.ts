@@ -51,7 +51,7 @@ chrome.runtime.onMessage.addListener(
                 loadCurrentTabs().then(currentTabs => {
                     const reopenedTabIndex = currentTabs.findIndex(tab => tab.id === reopenedTab.id?.toString());
                     const reopenedTabId = currentTabs[reopenedTabIndex].id;
-                    currentTabs[reopenedTabIndex] = { ...message.reopenTab, id: reopenedTabId };
+                    currentTabs[reopenedTabIndex] = { ...message.reopenTab!, id: reopenedTabId };
                     sendResponse({ currentTabs })
                 });
             });
@@ -124,11 +124,10 @@ function getClosedTabCommands(): Command[] {
 }
 
 async function loadAllCommands(): Promise<CommandMessageResponse> {
-    const currentTabCommands = await loadCurrentTabCommands();
-    const bookmarkCommands = await loadBookmarkCommands();
-    const closedTabCommands = getClosedTabCommands();
     const { githubUsername } = await storage.get();
-    const prCommands = await loadPRCommands(githubUsername);
+    const all = await Promise.all([loadCurrentTabCommands(), loadBookmarkCommands(), loadPRCommands(githubUsername)])
+    const [currentTabCommands, bookmarkCommands, prCommands] = all;
+    const closedTabCommands = getClosedTabCommands();
     return {
         bookmarkCommands,
         currentTabCommands,
