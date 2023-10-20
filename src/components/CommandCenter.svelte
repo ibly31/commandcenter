@@ -37,10 +37,13 @@
     let bookmarkCommands: Command[] = [];
     let currentTabCommands: Command[] = [];
     let closedTabCommands: Command[] = [];
+    let prCommands: Command[] = [];
+
     sendMessage(Msg.loadAllCommands, (response: CommandMessageResponse) => {
         bookmarkCommands = response.bookmarkCommands ?? [];
         currentTabCommands = response.currentTabCommands ?? [];
         closedTabCommands = response.closedTabCommands ?? [];
+        prCommands = response.prCommands ?? [];
     });
 
     let exactCommands: Command[] = [
@@ -71,7 +74,7 @@
     ];
 
     let allCommands: Command[] = [];
-    $: allCommands = [...exactCommands, ...currentTabCommands, ...bookmarkCommands, ...closedTabCommands];
+    $: allCommands = [...exactCommands, ...currentTabCommands, ...bookmarkCommands, ...prCommands, ...closedTabCommands];
     let queryCommands: Command[];
     $: queryCommands = searchCommands(allCommands, query);
 
@@ -92,7 +95,7 @@
             tiebreakers: [typeTieBreaker, dateTieBreaker]
         });
 
-        const results: FzfResultItem<Command>[] = fzf.find(search.replaceAll(' ', ''));
+        const results: FzfResultItem<Command>[] = fzf.find(search.replaceAll(' ', '').replace('-', ' '));
         selectedIndex = 0;
         const seenIds = new Set();
         return results.map(item => {

@@ -2,11 +2,12 @@ import {
     type Command,
     CommandType,
     loadBookmarkCommands,
-    loadCurrentTabCommands,
+    loadCurrentTabCommands, loadPRCommands,
 } from '../comms/commands';
 import { type CommandMessageResponse, type Message, Msg } from '../comms/messages';
 import { loadCurrentTabs, makeSenderTab, type TabInfo } from '../comms/tabs';
 import { getPRs } from '../comms/prs';
+import { storage } from '../storage';
 
 // chrome.runtime.onInstalled.addListener(() => {
 //      storage.get().then(console.log);
@@ -126,7 +127,12 @@ async function loadAllCommands(): Promise<CommandMessageResponse> {
     const currentTabCommands = await loadCurrentTabCommands();
     const bookmarkCommands = await loadBookmarkCommands();
     const closedTabCommands = getClosedTabCommands();
+    const { githubUsername } = await storage.get();
+    const prCommands = await loadPRCommands(githubUsername);
     return {
-        bookmarkCommands, currentTabCommands, closedTabCommands
+        bookmarkCommands,
+        currentTabCommands,
+        closedTabCommands,
+        prCommands
     };
 }

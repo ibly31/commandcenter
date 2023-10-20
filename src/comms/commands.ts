@@ -1,4 +1,5 @@
-import { Msg, sendMessage } from '../comms/messages';
+import { Msg, sendMessage } from './messages';
+import { getPRs } from './prs';
 
 export enum Mode {
     COMMAND_CENTER = 'COMMAND_CENTER',
@@ -10,6 +11,7 @@ export enum CommandType {
     BOOKMARK = 'BOOKMARK',
     CURRENT_TAB = 'CURRENT_TAB',
     CLOSED_TAB = 'CLOSED_TAB',
+    PR = 'PR',
     EXACT = 'EXACT'
 }
 
@@ -17,6 +19,7 @@ export const COMMAND_TYPE_LABELS = {
     [CommandType.BOOKMARK]: 'bookmark',
     [CommandType.CURRENT_TAB]: 'current',
     [CommandType.CLOSED_TAB]: 'closed',
+    [CommandType.PR]: 'PR',
     [CommandType.EXACT]: 'command'
 };
 
@@ -65,6 +68,21 @@ function currentTabsToCommands(tabs: chrome.tabs.Tab[]): Command[] {
 export function loadClosedTabCommands(callback: (commands: Command[]) => void) {
     sendMessage(Msg.loadClosedTabCommands, (response) => {
         callback(response.closedTabCommands);
+    });
+}
+
+const GITHUB_FAVICON_URL = 'https://github.githubassets.com/favicons/favicon-dark.svg';
+export async function loadPRCommands(githubUsername: string): Promise<Command[]> {
+    const prs = await getPRs(githubUsername);
+    return prs.map(pr => {
+        return {
+            type: CommandType.PR,
+            id: `pr-${pr.id}`,
+            icon: GITHUB_FAVICON_URL,
+            url: pr.url,
+            title: pr.searchEntry,
+            sortDate: pr.lastVisitTime
+        };
     });
 }
 

@@ -25,6 +25,7 @@ export type CommandMessageResponse = {
     bookmarkCommands?: Command[];
     currentTabCommands?: Command[];
     closedTabCommands?: Command[];
+    prCommands?: Command[];
 }
 
 type ResponseCallback = (response: any) => void;

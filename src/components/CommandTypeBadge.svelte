@@ -34,6 +34,10 @@
             background-color: $kh-silver;
         }
 
+        &.PR {
+            background-color: $pr-purple;
+        }
+
         &.EXACT {
             background-color: transparent;
             color: $kh-green;

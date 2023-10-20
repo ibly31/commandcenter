@@ -45,9 +45,14 @@ function makePR(item: chrome.history.HistoryItem): PR | null {
 const maxPRs = 50;
 const maxSearchResults = 1000;
 
+let millisPerWeek = 1000 * 60 * 60 * 24 * 7;
+function getStartTime(weeks: number) {
+    return new Date().getTime() - weeks * millisPerWeek;
+}
+
 export async function getPRs(githubUsername: string): Promise<PR[]> {
     const items = await chrome.history.search({
-        startTime: 0,
+        startTime: getStartTime(4),
         text: `github.com pull request by ${githubUsername}`,
         maxResults: maxSearchResults
     });
