@@ -51,6 +51,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           ZIP_NAME="commandcenter-${VERSION}"
           mv dist "$ZIP_NAME"
+          mkdir -p build
           zip -r -q "build/${VERSION}.zip" "$ZIP_NAME"
 
       - name: Create Release
