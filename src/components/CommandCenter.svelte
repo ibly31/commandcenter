@@ -86,9 +86,10 @@
     }
 
     function searchCommands(commands: Command[], search: string): Command[] {
+        const searchUrlCommands = commands.map(command => ({ ...command, isSearchUrl: true }));
         let commandsToSearch: Command[] = [
             ...commands,
-            ...commands.map(command => ({ ...command, isSearchUrl: true }))
+            ...searchUrlCommands.filter(command => command.type !== CommandType.PR)
         ];
         const fzf = new Fzf(commandsToSearch, {
             selector: searchSelector,

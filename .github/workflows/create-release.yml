@@ -42,7 +42,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Extract tags for release
+        shell: bash
+        run: |
+          mkdir -p build
+          VERSION=$(cat package.json | grep '"version"' | awk '{ print $2 }' | sed 's/[",]//g')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          zip -r -q "build/${VERSION}.zip" dist
+
       - name: Create Release
-        run: gh release create ${{ env.TAG_CURRENT }} --generate-notes
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
+        run: gh release create ${{ env.VERSION }} ./build/${{ env.VERSION }}.zip --generate-notes
