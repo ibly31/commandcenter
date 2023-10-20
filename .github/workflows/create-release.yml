@@ -38,16 +38,13 @@ jobs:
       - name: Run version update
         run: npm version ${{ github.event.inputs.updateType }}
 
-      - name: Push version to master
-        run: git push origin master && git push origin --follow-tags
-
       - name: Install dependencies
         run: npm ci
 
       - name: Build
         run: npm run build
 
-      - name: Extract tags for release
+      - name: Package build
         shell: bash
         run: |
           mkdir -p build
@@ -57,3 +54,8 @@ jobs:
 
       - name: Create Release
         run: gh release create ${{ env.VERSION }} ./build/${{ env.VERSION }}.zip --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Push version to master
+        run: git push origin master && git push origin --follow-tags
