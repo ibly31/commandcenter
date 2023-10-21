@@ -68,10 +68,6 @@
         return !tab.pinned;
     }
 
-    function isCurrentTab(tab: TabInfo) {
-        return tab.url === window.location.href;
-    }
-
     function removeTab(tabId: string) {
         if (!tabId) return;
         const tabIndex = currentTabs.findIndex(currentTab => currentTab.id === tabId);

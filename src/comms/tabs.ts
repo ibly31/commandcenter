@@ -43,9 +43,7 @@ export function chromeTabToTabInfo(tab: chrome.tabs.Tab, inCurrentWindow: boolea
     };
 }
 
-type TabPromise = Promise<chrome.tabs.Tab[]>;
-
-function tabsForWindow(window: chrome.windows.Window): TabPromise {
+function tabsForWindow(window: chrome.windows.Window): Promise<chrome.tabs.Tab[]> {
     return chrome.tabs.query({ windowId: window.id });
 }
 
