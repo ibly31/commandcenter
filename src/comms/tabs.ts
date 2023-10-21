@@ -8,6 +8,8 @@ export type TabInfo = {
     closeDate?: number;
     pinned: boolean;
     index: number;
+    windowId: number;
+    inCurrentWindow: boolean;
 };
 
 export type TabMessageResponse = {
@@ -27,7 +29,7 @@ export function makeSenderTab(sender: chrome.runtime.MessageSender): SenderTab {
     };
 }
 
-export function chromeTabToTabInfo(tab: chrome.tabs.Tab): TabInfo {
+export function chromeTabToTabInfo(tab: chrome.tabs.Tab, inCurrentWindow: boolean): TabInfo {
     const id = (tab.id ?? -1).toString();
     return {
         id: id,
@@ -35,12 +37,21 @@ export function chromeTabToTabInfo(tab: chrome.tabs.Tab): TabInfo {
         title: tab.title!,
         favIconUrl: tab.favIconUrl || DEFAULT_FAVICON_URL,
         pinned: tab.pinned,
-        index: tab.index
+        index: tab.index,
+        windowId: tab.windowId,
+        inCurrentWindow
     };
 }
 
+type TabPromise = Promise<chrome.tabs.Tab[]>;
+
+function tabsForWindow(window: chrome.windows.Window): TabPromise {
+    return chrome.tabs.query({ windowId: window.id });
+}
+
 export async function loadCurrentTabs(): Promise<TabInfo[]> {
-    return chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }).then(tabs => {
-        return tabs.map(chromeTabToTabInfo);
-    });
+    const windows = await chrome.windows.getAll();
+    const activeWindowId = windows.find(w => w.focused)?.id;
+    const allTabs = await Promise.all(windows.flatMap(tabsForWindow));
+    return allTabs.flat().map(tab => chromeTabToTabInfo(tab, tab.windowId === activeWindowId));
 }

@@ -45,6 +45,7 @@ chrome.runtime.onMessage.addListener(
         } else if (message.reopenTab !== undefined) {
             chrome.tabs.create({
                 index: message.reopenTab.index,
+                windowId: message.reopenTab.windowId,
                 url: message.reopenTab.url,
                 active: false
             }).then((reopenedTab) => {

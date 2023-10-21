@@ -49,18 +49,18 @@
     let exactCommands: Command[] = [
         {
             type: CommandType.EXACT,
-            id: EXACT_ID_PRC,
-            icon: DEFAULT_FAVICON_URL,
-            url: '',
-            title: 'prc - PR Center',
-            sortDate: 0
-        },
-        {
-            type: CommandType.EXACT,
             id: EXACT_ID_TC,
             icon: DEFAULT_FAVICON_URL,
             url: '',
             title: 'tc - Tab Center',
+            sortDate: 0
+        },
+        {
+            type: CommandType.EXACT,
+            id: EXACT_ID_PRC,
+            icon: DEFAULT_FAVICON_URL,
+            url: '',
+            title: 'prc - PR Center',
             sortDate: 0
         },
         {
@@ -110,7 +110,7 @@
             }
             seenIds.add(command.id);
             return true;
-        }).slice(0, 8);
+        }).slice(0, 12);
     }
 
     function typeTieBreaker(a: FzfResultItem<Command>, b: FzfResultItem<Command>): number {

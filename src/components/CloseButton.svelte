@@ -13,8 +13,8 @@
     $half-size: calc($size / 2);
 
     .close-button {
-        position: absolute;
-        right: $half-size;
+        display: inline-block;
+        position: relative;
         width: $size;
         height: $size;
         opacity: 0.75;
@@ -23,6 +23,7 @@
         &:hover {
             opacity: 1;
         }
+
         &:before, &:after {
             position: absolute;
             left: $half-size;

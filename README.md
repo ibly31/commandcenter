@@ -3,14 +3,9 @@
 > Fuzzy search through bookmarks, commands and tabs. Accessible via New Tab or on any page with configured keybindings
 
 ## Todo
-- Reset storage.ts default username to empty string
-- If TabCenter deletes the current tab, maybe find a way to open NewTab to TabCenter in same index and continue?
-    - Alternately, disallow deleting current tab
-- Make removal of tabs update the index of each item
+- Reset storage.ts default username to empty string before each release
 - Favicon cache and overrides so it doesn't spam with failed network requests off VPN
-- Figure out deploying to Chrome Web Store
 - GitHub Actions
-    - Action to build dist.zip as a Release?
     - Action to deploy build to Chrome Web Store
 
 ## Development
