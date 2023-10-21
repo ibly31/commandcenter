@@ -2,28 +2,36 @@
     import KeyFunctionDescription from './KeyFunctionDescription.svelte';
     import K from './Key.svelte';
     import { type IStorage, storage } from '../storage';
-    import { G_DOUBLE_TIME, G_KEY_MAP, KEY_MAP, type KeyMap } from '../content/vimKeys';
+    import { G_KEY_MAP, KEY_MAP, type KeyMap } from '../content/vimKeys';
 
     /** State */
 
     let githubUsername = '';
+    let gDoubleTime = 350;
+    let vimKeysBlacklistCSV = '';
     storage.get().then((storage: IStorage) => {
         githubUsername = storage.githubUsername;
+        gDoubleTime = storage.gDoubleTime;
+        vimKeysBlacklistCSV = storage.vimKeysBlacklistCSV;
     });
 
-    function saveGithubUsername() {
-        storage.set({ githubUsername });
+    const csvUrlRe = /^[.a-z0-9,_ -]*$/
+    let vimKeysBlacklistCSVInvalid = false;
+    $: vimKeysBlacklistCSVInvalid = !csvUrlRe.test(vimKeysBlacklistCSV);
+
+    function saveSettings() {
+        storage.set({ githubUsername, gDoubleTime, vimKeysBlacklistCSV });
     }
 
-    let timer: number;
-    const handleGithubUsernameKey = (event: KeyboardEvent) => {
-        clearTimeout(timer)
+    let debounceTimer: number;
+    const handleSettingInputKey = (event: KeyboardEvent) => {
+        clearTimeout(debounceTimer);
         if (event.key === 'Enter') {
-            saveGithubUsername();
+            saveSettings();
             return;
         }
-        timer = setTimeout(() => {
-            saveGithubUsername();
+        debounceTimer = setTimeout(() => {
+            saveSettings();
         }, 300)
     }
 
@@ -73,7 +81,7 @@
     <p>
         "G Keybindings" always are prefixed with lowercase
         <K>g</K>
-        You must hit the second key within {G_DOUBLE_TIME} milliseconds.
+        You must hit the second key within <K>{gDoubleTime}</K> milliseconds.
         Most have a mnemonic to help memorize.
         <K>gg</K>
         and
@@ -87,13 +95,37 @@
         <label for="githubUsername">GitHub Username:</label>
         <input name="githubUsername"
                bind:value={githubUsername}
-               on:keydown={handleGithubUsernameKey}
+               on:keydown={handleSettingInputKey}
                spellcheck="false"
                autocomplete="false"
                placeholder="GitHub Username"
                minlength="3"
                maxlength="40"
                required
+        >
+    </div>
+    <div class="setting-input">
+        <label for="gDoubleTime"><K>G</K> Keybinding Timeout:</label>
+        <input name="gDoubleTime"
+               bind:value={gDoubleTime}
+               on:keydown={handleSettingInputKey}
+               type="number"
+               min="100"
+               max="3000"
+               spellcheck="false"
+               placeholder="Milliseconds"
+               required
+        >
+    </div>
+    <div class="setting-input">
+        <label for="vimKeysBlacklistCSV">Vim Keys URL Blacklist:</label>
+        <input name="vimKeysBlacklistCSV"
+               bind:value={vimKeysBlacklistCSV}
+               on:keydown={handleSettingInputKey}
+               class:invalid={vimKeysBlacklistCSVInvalid}
+               spellcheck="false"
+               autocomplete="false"
+               placeholder="google.com, example.com"
         >
     </div>
 </div>
@@ -127,6 +159,7 @@
 
         label {
             margin-right: 10px;
+            width: 35%;
         }
 
         input {
@@ -139,23 +172,10 @@
             border-radius: 5px;
             flex-grow: 1;
 
-            &:invalid {
-                border: 1px solid $kh-red;
+            &:invalid, &.invalid {
+                outline: 1px solid $kh-red;
             }
         }
-        //button {
-        //    width: 70px;
-        //    padding: 12px;
-        //    margin-left: 10px;
-        //    background-color: $kh-success;
-        //    color: $kh-black;
-        //    border-radius: 5px;
-        //    border: none;
-        //
-        //    &:active {
-        //        background-color: $kh-green;
-        //    }
-        //}
     }
 
     h1, h2 {
@@ -168,5 +188,6 @@
         font-size: 15px;
         padding: 0 10px;
         margin: 10px 0;
+        line-height: 1.4em;
     }
 </style>
