@@ -1,9 +1,13 @@
 export type IStorage = {
     githubUsername: string;
+    gDoubleTime: number;
+    vimKeysBlacklistCSV: string;
 };
 
 const defaultStorage: IStorage = {
-    githubUsername: '',
+    githubUsername: 'williamconnolly',
+    gDoubleTime: 350,
+    vimKeysBlacklistCSV: 'google.com',
 };
 
 export const storage = {

@@ -68,11 +68,8 @@ export const KEY_MAP: KeyMap = {
     }),
 };
 
-export const VIM_KEYS_BLACKLIST = ['google.com'];
-export const G_DOUBLE_TIME = 350;
-
-export function setupVimKeys() {
-    if (urlIncludes(VIM_KEYS_BLACKLIST)) {
+export function setupVimKeys(gDoubleTime: number, vimKeysBlacklist: string[]) {
+    if (urlIncludes(vimKeysBlacklist)) {
         return;
     }
 
@@ -91,7 +88,7 @@ export function setupVimKeys() {
         }
 
         function withinDoubleTime() {
-            return Number(new Date()) - LAST_G_TIME <= G_DOUBLE_TIME;
+            return Number(new Date()) - LAST_G_TIME <= gDoubleTime;
         }
 
         let key = event.key;

@@ -110,7 +110,7 @@
             }
             seenIds.add(command.id);
             return true;
-        });
+        }).slice(0, 8);
     }
 
     function typeTieBreaker(a: FzfResultItem<Command>, b: FzfResultItem<Command>): number {
