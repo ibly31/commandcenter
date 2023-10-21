@@ -34,12 +34,18 @@
 
     let queryTabs: TabInfo[];
     $: {
-        queryTabs = searchTabs(currentTabs, query);
+        queryTabs = searchAllTabs(currentTabs, query);
         selectedIndex = offsetSelectedIndex(0, selectedIndex, queryTabs.length);
     }
 
     function searchSelector(tab: TabInfo): string {
         return tab.title.replaceAll('-', ' ');
+    }
+
+    function searchAllTabs(tabs: TabInfo[], search: string): TabInfo[] {
+        const currentWindowTabs = searchTabs(tabs.filter(tab => tab.inCurrentWindow), search);
+        const otherWindowTabs = searchTabs(tabs.filter(tab => !tab.inCurrentWindow), search);
+        return [...currentWindowTabs, ...otherWindowTabs];
     }
 
     function searchTabs(tabs: TabInfo[], search: string): TabInfo[] {
@@ -59,13 +65,7 @@
     }
 
     function isTabRemovable(tab: TabInfo) {
-        if (tab.pinned) {
-            return false;
-        }
-        if (tab.url === window.location.href) {
-            return false;
-        }
-        return true;
+        return !tab.pinned;
     }
 
     function removeTab(tabId: string) {
@@ -81,6 +81,7 @@
             sendMessage({ removeTabId: Number(tabId) });
             closedTabs.push(closedTab);
         }
+        tabInputRef.focus();
     }
 
     function toggleTabPinned(tabId: string) {
@@ -149,6 +150,7 @@
         <div
            class="tab"
            class:selected={index === selectedIndex}
+           class:is-other-window={!tab.inCurrentWindow}
            on:click={() => switchToTab(tab.id, renderingInPage)}
         >
             <span class="tab-icon">
@@ -160,11 +162,13 @@
                         indices={tab.matchIndices}
                 />
             </span>
-            {#if !isTabRemovable(tab)}
+            <span class="tab-buttons">
+            {#if tab.pinned}
                 <TabPinnedButton onClick={() => toggleTabPinned(tab.id)} />
             {:else}
                 <CloseButton onClick={() => removeTab(tab.id)} />
             {/if}
+            </span>
         </div>
     {/each}
     </div>
@@ -184,6 +188,7 @@
         @include container-base;
         margin: 0;
         padding: 0;
+        overflow-y: scroll;
 
         &.large-width {
             min-width: 1000px;
@@ -194,12 +199,15 @@
         .input-container {
             width: 100%;
             border-bottom: 3px solid $kh-silver;
+            position: sticky;
+            top: 0;
+            z-index: 2;
 
             .tab-input {
                 padding: 15px 20px;
                 font-size: 24px;
                 color: $kh-white;
-                background-color: transparent;
+                background-color: black;
                 width: 100%;
                 border: none;
 
@@ -218,7 +226,7 @@
             list-style-type: none;
             margin: 0;
             padding: 0;
-            overflow: scroll;
+            overflow-y: scroll;
             overflow-x: hidden;
             width: 100%;
 
@@ -226,10 +234,16 @@
                 @include list-border;
                 position: relative;
                 display: flex;
+                justify-content: space-around;
                 align-items: center;
                 padding: 5px 0;
                 text-decoration: none;
                 width: 100%;
+
+                &.is-other-window {
+                    background-color: $kh-darkgray;
+                    border-color: $kh-black;
+                }
 
                 &:first-child {
                     border-top: none;
@@ -240,7 +254,6 @@
                 }
 
                 .tab-icon {
-                    min-width: 30px;
                     margin-left: 10px;
                     display: flex;
                     justify-content: center;
@@ -258,6 +271,11 @@
                     flex-direction: column;
                     justify-content: space-evenly;
                     width: calc(100% - 100px);
+                }
+
+                .tab-buttons {
+                    margin-right: 10px;
+                    display: flex;
                 }
             }
         }

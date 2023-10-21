@@ -5,7 +5,7 @@ export type IStorage = {
 };
 
 const defaultStorage: IStorage = {
-    githubUsername: 'williamconnolly',
+    githubUsername: import.meta.env.VITE_GITHUB_USERNAME || '',
     gDoubleTime: 350,
     vimKeysBlacklistCSV: 'google.com',
 };

@@ -14,13 +14,14 @@
     $size: 24px;
 
     .pinned-button {
-        position: absolute;
-        right: calc($size / 2);
-        width: $size;
-        height: $size;
+        display: inline-block;
         opacity: 0.75;
         cursor: pointer;
         font-size: $size;
-        text-align: center;
+        line-height: $size;
+
+        &:hover {
+            opacity: 1;
+        }
     }
 </style>
