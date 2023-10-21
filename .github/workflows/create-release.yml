@@ -48,14 +48,15 @@ jobs:
         shell: bash
         run: |
           VERSION=$(cat package.json | grep '"version"' | awk '{ print $2 }' | sed 's/[",]//g')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
           ZIP_NAME="commandcenter-${VERSION}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           mv dist "$ZIP_NAME"
           mkdir -p build
-          zip -r -q "build/${VERSION}.zip" "$ZIP_NAME"
+          zip -r -q "build/${ZIP_NAME}.zip" "$ZIP_NAME"
 
       - name: Create Release
-        run: gh release create ${{ env.VERSION }} ./build/${{ env.VERSION }}.zip --generate-notes
+        run: gh release create ${{ env.VERSION }} ./build/${{ env.ZIP_NAME }}.zip --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
 
