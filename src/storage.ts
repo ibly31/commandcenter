@@ -2,9 +2,8 @@ export type IStorage = {
     githubUsername: string;
 };
 
-// TODO reset to empty string
 const defaultStorage: IStorage = {
-    githubUsername: 'williamconnolly',
+    githubUsername: '',
 };
 
 export const storage = {
