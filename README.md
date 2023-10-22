@@ -8,6 +8,7 @@
 - Set up opinionated auto linting
 - Actually use settings.scrollSmooth
 - Document code files for adding siteScripts and vimKeys
+- Share with personal account
 - GitHub Actions
     - Action to deploy build to Chrome Web Store
 
