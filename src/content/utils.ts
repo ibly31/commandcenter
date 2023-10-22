@@ -51,6 +51,44 @@ export function triggerPageOffset(offset: number) {
     location.href = url.substring(0, index) + offsetNumber + url.substring(index + offsetNumber.length);
 }
 
+export function reloadPage() {
+    window.location.reload();
+}
+
+export function openNewTab(url: string) {
+    window.open(url, '_blank');
+}
+
+export function scrollTo(to: 'top' | 'bottom', behavior: ScrollBehavior) {
+    const top = to === 'top' ? 0 : document.body.scrollHeight;
+    window.scrollTo({ top, behavior });
+}
+
+function sortSources(a: HTMLVideoElement, b: HTMLVideoElement) {
+    let aResAttr = a.getAttribute('res');
+    let bResAttr = b.getAttribute('res');
+    if (!aResAttr || !bResAttr) {
+        return 0;
+    }
+    const aRes = Number(aResAttr.replace(/\D/g, ''));
+    const bRes = Number(bResAttr.replace(/\D/g, ''));
+    if (isNaN(aRes) || isNaN(bRes)) {
+        return 0;
+    }
+    return bRes - aRes;
+}
+
+export function openVideoSourceUrl() {
+    let sources = Array.from(document.querySelectorAll<HTMLVideoElement>('video source'));
+    if (!sources?.length) {
+        return;
+    }
+    const source = sources.sort(sortSources).at(0);
+    if (source?.src) {
+        openNewTab(source?.src);
+    }
+}
+
 const INPUT_ELEMENTS = ['input', 'textarea', 'button'];
 const INPUT_ROLES = ['textbox', 'textarea', 'input', 'button'];
 

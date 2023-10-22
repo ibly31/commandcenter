@@ -9,18 +9,22 @@
     let githubUsername = '';
     let gDoubleTime = 350;
     let vimKeysBlacklistCSV = '';
+    let scrollSmooth = true;
     storage.get().then((storage: IStorage) => {
         githubUsername = storage.githubUsername;
         gDoubleTime = storage.gDoubleTime;
         vimKeysBlacklistCSV = storage.vimKeysBlacklistCSV;
+        scrollSmooth = storage.scrollSmooth;
     });
 
     const csvUrlRe = /^[.a-z0-9,_ -]*$/
-    let vimKeysBlacklistCSVInvalid = false;
     $: vimKeysBlacklistCSVInvalid = !csvUrlRe.test(vimKeysBlacklistCSV);
+    $: if (scrollSmooth || !scrollSmooth) {
+        saveSettings();
+    }
 
     function saveSettings() {
-        storage.set({ githubUsername, gDoubleTime, vimKeysBlacklistCSV });
+        storage.set({ githubUsername, gDoubleTime, vimKeysBlacklistCSV, scrollSmooth });
     }
 
     let debounceTimer: number;
@@ -93,7 +97,8 @@
     <h2>Settings</h2>
     <div class="setting-input">
         <label for="githubUsername">GitHub Username:</label>
-        <input name="githubUsername"
+        <input id="githubUsername"
+               name="githubUsername"
                bind:value={githubUsername}
                on:keydown={handleSettingInputKey}
                spellcheck="false"
@@ -106,10 +111,11 @@
     </div>
     <div class="setting-input">
         <label for="gDoubleTime"><K>G</K> Keybinding Timeout:</label>
-        <input name="gDoubleTime"
+        <input id="gDoubleTime"
+               name="gDoubleTime"
+               type="number"
                bind:value={gDoubleTime}
                on:keydown={handleSettingInputKey}
-               type="number"
                min="100"
                max="3000"
                spellcheck="false"
@@ -119,13 +125,22 @@
     </div>
     <div class="setting-input">
         <label for="vimKeysBlacklistCSV">Vim Keys URL Blacklist:</label>
-        <input name="vimKeysBlacklistCSV"
+        <input id="vimKeysBlacklistCSV"
+               name="vimKeysBlacklistCSV"
                bind:value={vimKeysBlacklistCSV}
                on:keydown={handleSettingInputKey}
                class:invalid={vimKeysBlacklistCSVInvalid}
                spellcheck="false"
                autocomplete="false"
                placeholder="google.com, example.com"
+        >
+    </div>
+    <div class="setting-input">
+        <label for="scrollSmooth">Scroll Smooth:</label>
+        <input id="scrollSmooth"
+               name="scrollSmooth"
+               type="checkbox"
+               bind:checked={scrollSmooth}
         >
     </div>
 </div>
