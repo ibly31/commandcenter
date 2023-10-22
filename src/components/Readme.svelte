@@ -19,6 +19,8 @@
 
     const csvUrlRe = /^[.a-z0-9,_ -]*$/
     $: vimKeysBlacklistCSVInvalid = !csvUrlRe.test(vimKeysBlacklistCSV);
+
+    // TODO: Is there a way to just call on scrollSmooth change?
     $: if (scrollSmooth || !scrollSmooth) {
         saveSettings();
     }
@@ -53,6 +55,11 @@
 
     const gKeyFunctionInfos = getKeyFunctionInfos(G_KEY_MAP);
     const keyFunctionInfos = getKeyFunctionInfos(KEY_MAP);
+
+    const ID_GU = 'githubUsername';
+    const ID_GDT = 'gDoubleTime';
+    const ID_VKBCSV = 'vimKeysBlacklistCSV';
+    const ID_SS = 'scrollSmooth';
 </script>
 
 <div class="readme-container">
@@ -96,9 +103,9 @@
     {/each}
     <h2>Settings</h2>
     <div class="setting-input">
-        <label for="githubUsername">GitHub Username:</label>
-        <input id="githubUsername"
-               name="githubUsername"
+        <label for={ID_GU}>GitHub Username:</label>
+        <input id={ID_GU}
+               name={ID_GU}
                bind:value={githubUsername}
                on:keydown={handleSettingInputKey}
                spellcheck="false"
@@ -110,9 +117,9 @@
         >
     </div>
     <div class="setting-input">
-        <label for="gDoubleTime"><K>G</K> Keybinding Timeout:</label>
-        <input id="gDoubleTime"
-               name="gDoubleTime"
+        <label for={ID_GDT}><K>G</K> Keybinding Timeout:</label>
+        <input id={ID_GDT}
+               name={ID_GDT}
                type="number"
                bind:value={gDoubleTime}
                on:keydown={handleSettingInputKey}
@@ -124,9 +131,9 @@
         >
     </div>
     <div class="setting-input">
-        <label for="vimKeysBlacklistCSV">Vim Keys URL Blacklist:</label>
-        <input id="vimKeysBlacklistCSV"
-               name="vimKeysBlacklistCSV"
+        <label for={ID_VKBCSV}>Vim Keys URL Blacklist:</label>
+        <input id={ID_VKBCSV}
+               name={ID_VKBCSV}
                bind:value={vimKeysBlacklistCSV}
                on:keydown={handleSettingInputKey}
                class:invalid={vimKeysBlacklistCSVInvalid}
@@ -136,9 +143,9 @@
         >
     </div>
     <div class="setting-input">
-        <label for="scrollSmooth">Scroll Smooth:</label>
-        <input id="scrollSmooth"
-               name="scrollSmooth"
+        <label for={ID_SS}>Scroll Smooth:</label>
+        <input id={ID_SS}
+               name={ID_SS}
                type="checkbox"
                bind:checked={scrollSmooth}
         >

@@ -1,12 +1,17 @@
 export type ContentUrls = string | string[];
-export function urlIncludes(urls: ContentUrls) {
+export function urlIncludes(urls: ContentUrls | undefined) {
+    if (!urls || !urls?.length) {
+        return true;
+    }
     if (!Array.isArray(urls)) {
         urls = [urls];
     }
     return urls.some(url => document.location.href.includes(url));
 }
 
- /** Some elements aren't rendered on page load so we need to retry periodically */
+ /** Some elements aren't rendered on page load so we need to retry periodically
+  *  TODO: Maybe use MutationObserver to run when page changes
+  */
 export function retryAction(retrySeconds: number, interval: number, action: () => boolean) {
     function tryAction() {
         retrySeconds = retrySeconds - interval / 1000.0;
@@ -64,28 +69,27 @@ export function scrollTo(to: 'top' | 'bottom', behavior: ScrollBehavior) {
     window.scrollTo({ top, behavior });
 }
 
-function sortSources(a: HTMLVideoElement, b: HTMLVideoElement) {
-    let aResAttr = a.getAttribute('res');
-    let bResAttr = b.getAttribute('res');
-    if (!aResAttr || !bResAttr) {
-        return 0;
-    }
-    const aRes = Number(aResAttr.replace(/\D/g, ''));
-    const bRes = Number(bResAttr.replace(/\D/g, ''));
-    if (isNaN(aRes) || isNaN(bRes)) {
-        return 0;
-    }
-    return bRes - aRes;
-}
-
 export function openVideoSourceUrl() {
     let sources = Array.from(document.querySelectorAll<HTMLVideoElement>('video source'));
     if (!sources?.length) {
         return;
     }
-    const source = sources.sort(sortSources).at(0);
-    if (source?.src) {
-        openNewTab(source?.src);
+    sources = sources.sort((a, b) => {
+        let aResAttr = a.getAttribute('res');
+        let bResAttr = b.getAttribute('res');
+        if (!aResAttr || !bResAttr) {
+            return 0;
+        }
+        const aRes = Number(aResAttr.replace(/\D/g, ''));
+        const bRes = Number(bResAttr.replace(/\D/g, ''));
+        if (isNaN(aRes) || isNaN(bRes)) {
+            return 0;
+        }
+        return bRes - aRes;
+    });
+    const source = sources?.at(0)?.src;
+    if (source) {
+        openNewTab(source);
     }
 }
 

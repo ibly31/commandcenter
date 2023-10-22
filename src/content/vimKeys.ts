@@ -1,6 +1,6 @@
 import { Action, Msg, postActionMessage, sendMessage } from '../comms/messages';
 import {
-    ContentUrls,
+    type ContentUrls,
     isFocusedOnInput,
     openVideoSourceUrl,
     reloadPage,
@@ -113,7 +113,7 @@ export function setupVimKeys(gDoubleTime: number, vimKeysBlacklist: string[], sc
             key = '$';
         }
 
-        let keyFunction: KeyFunction;
+        let keyFunction: KeyFunction | null = null;
         if (key === 'g' && !withinDoubleTime()) {
             LAST_G_TIME = Number(new Date());
         } else if (key in G_KEY_MAP) {
@@ -128,7 +128,7 @@ export function setupVimKeys(gDoubleTime: number, vimKeysBlacklist: string[], sc
             return;
         }
         const [_, execute, urls] = keyFunction();
-        if (!urls?.length || urlIncludes(urls)) {
+        if (urlIncludes(urls)) {
             execute();
         }
     });
