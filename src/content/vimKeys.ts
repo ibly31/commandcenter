@@ -2,19 +2,19 @@ import { Action, Msg, postActionMessage, sendMessage } from '../comms/messages';
 import {
     type ContentUrls,
     isFocusedOnInput,
-    openVideoSourceUrl,
     reloadPage,
     scrollTo,
     triggerPageOffset,
     urlIncludes
 } from './utils';
+import { LOCAL_G_KEY_MAP, LOCAL_KEY_MAP } from './local';
 
-type KeyFunction = () => [
+export type KeyFunction = () => [
     string, () => void, ContentUrls | undefined
 ];
 export type KeyMap = { [key: string]: KeyFunction };
 
-function makeKeyFunction(key: string, description: string, run: () => void, urls?: ContentUrls): KeyMap {
+export function makeKeyFunction(key: string, description: string, run: () => void, urls?: ContentUrls): KeyMap {
     return {
         [key]: () => {
             return [
@@ -42,9 +42,6 @@ export const G_KEY_MAP: KeyMap = {
     ...makeKeyFunction('d', 'Go to "Previous Page" by decrementing last number in URL', () => {
         triggerPageOffset(-1);
     }),
-    ...makeKeyFunction('v', 'Go to video source url', () => {
-        openVideoSourceUrl();
-    }),
     ...makeKeyFunction('D', 'Duplicate current tab', () => {
         sendMessage(Msg.duplicateTab);
     }),
@@ -60,6 +57,7 @@ export const G_KEY_MAP: KeyMap = {
     ...makeKeyFunction('$', 'Move current tab all the way to the right', () => {
         sendMessage({ moveTabOffset: '$' });
     }),
+    ...LOCAL_G_KEY_MAP
 };
 
 export const KEY_MAP: KeyMap = {
@@ -78,6 +76,7 @@ export const KEY_MAP: KeyMap = {
     ...makeKeyFunction('>', 'Move current tab to right', () => {
         sendMessage({ moveTabOffset: 1 });
     }),
+    ...LOCAL_KEY_MAP
 };
 
 export function setupVimKeys(gDoubleTime: number, vimKeysBlacklist: string[], scrollSmooth: boolean) {

@@ -1,17 +1,22 @@
 import { type ContentUrls, queryEachAnchor, retryAction, urlIncludes } from './utils';
+import { LOCAL_SITE_SCRIPTS } from './local';
 
-type SiteScript = {
+export type SiteScript = {
     urls: ContentUrls;
     description: string;
     setup: () => void;
 }
 export const SITE_SCRIPTS: SiteScript[] = [];
 
-function siteScript(urls: ContentUrls, description: string, setup: () => void) {
-    SITE_SCRIPTS.push({ urls, description, setup });
+export function siteScript(urls: ContentUrls, description: string, setup: () => void) {
+    return { urls, description, setup };
 }
 
-siteScript('jira.dev.lithium.com', 'Jira', () => {
+function addSiteScript(urls: ContentUrls, description: string, setup: () => void) {
+    SITE_SCRIPTS.push(siteScript(urls, description, setup));
+}
+
+addSiteScript('jira.dev.lithium.com', 'Jira', () => {
     // make the popup dialogs actually use all the screen real estate
     const style = document.createElement('style');
     style.textContent = `
@@ -29,12 +34,12 @@ siteScript('jira.dev.lithium.com', 'Jira', () => {
 });
 
 
-siteScript('ycombinator.com', 'HackerNews', () => {
+addSiteScript('ycombinator.com', 'HackerNews', () => {
     queryEachAnchor('td.subtext a:not([class]):not([onclick])', a => a.target = '_blank');
     queryEachAnchor('a.titlelink', a => a.target = '_blank');
 });
 
-siteScript('reddit.com', 'Reddit', () => {
+addSiteScript('reddit.com', 'Reddit', () => {
     queryEachAnchor('a.author', a => {
         if (a.href.match(/\/u(ser)?\/[^\/]+$/g)) {
             a.href = a.href + '/submitted/?sort=top&t=all';
@@ -47,7 +52,7 @@ siteScript('reddit.com', 'Reddit', () => {
     });
 });
 
-siteScript('github.com', 'GitHub', () => {
+addSiteScript('github.com', 'GitHub', () => {
     function retryStatusActions() {
         retryAction(15, 250, () => {
             let foundOne = false;
@@ -70,7 +75,7 @@ siteScript('github.com', 'GitHub', () => {
     retryStatusActions();
 });
 
-siteScript('meet.google.com', 'Google Meet', () => {
+addSiteScript('meet.google.com', 'Google Meet', () => {
     retryAction(5, 250, () => {
         let didMute = false;
         const muteButtons = document.querySelectorAll<HTMLButtonElement>('[role="button"][data-is-muted="false"]');
@@ -82,7 +87,7 @@ siteScript('meet.google.com', 'Google Meet', () => {
     });
 });
 
-siteScript(['sdxdemo.com', 'response.lithium.com', 'app.khoros.com'], 'Care', () => {
+addSiteScript(['sdxdemo.com', 'response.lithium.com', 'app.khoros.com'], 'Care', () => {
     function makeConversationNumberClickable() {
         const conversationNumber = document.querySelector<HTMLDivElement>('[tooltip="Conversation Number"]');
         if (conversationNumber && conversationNumber.textContent && conversationNumber.textContent.length > 1) {
@@ -101,7 +106,7 @@ siteScript(['sdxdemo.com', 'response.lithium.com', 'app.khoros.com'], 'Care', ()
 });
 
 export function setupSiteScripts() {
-    SITE_SCRIPTS.forEach(script => {
+    [...SITE_SCRIPTS, ...LOCAL_SITE_SCRIPTS].forEach(script => {
         if (urlIncludes(script.urls)) {
             script.setup();
         }

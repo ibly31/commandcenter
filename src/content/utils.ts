@@ -69,30 +69,6 @@ export function scrollTo(to: 'top' | 'bottom', behavior: ScrollBehavior) {
     window.scrollTo({ top, behavior });
 }
 
-export function openVideoSourceUrl() {
-    let sources = Array.from(document.querySelectorAll<HTMLVideoElement>('video source'));
-    if (!sources?.length) {
-        return;
-    }
-    sources = sources.sort((a, b) => {
-        let aResAttr = a.getAttribute('res');
-        let bResAttr = b.getAttribute('res');
-        if (!aResAttr || !bResAttr) {
-            return 0;
-        }
-        const aRes = Number(aResAttr.replace(/\D/g, ''));
-        const bRes = Number(bResAttr.replace(/\D/g, ''));
-        if (isNaN(aRes) || isNaN(bRes)) {
-            return 0;
-        }
-        return bRes - aRes;
-    });
-    const source = sources?.at(0)?.src;
-    if (source) {
-        openNewTab(source);
-    }
-}
-
 const INPUT_ELEMENTS = ['input', 'textarea', 'button'];
 const INPUT_ROLES = ['textbox', 'textarea', 'input', 'button'];
 
