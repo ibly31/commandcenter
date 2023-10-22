@@ -9,18 +9,24 @@
     let githubUsername = '';
     let gDoubleTime = 350;
     let vimKeysBlacklistCSV = '';
+    let scrollSmooth = true;
     storage.get().then((storage: IStorage) => {
         githubUsername = storage.githubUsername;
         gDoubleTime = storage.gDoubleTime;
         vimKeysBlacklistCSV = storage.vimKeysBlacklistCSV;
+        scrollSmooth = storage.scrollSmooth;
     });
 
     const csvUrlRe = /^[.a-z0-9,_ -]*$/
-    let vimKeysBlacklistCSVInvalid = false;
     $: vimKeysBlacklistCSVInvalid = !csvUrlRe.test(vimKeysBlacklistCSV);
 
+    // TODO: Is there a way to just call on scrollSmooth change?
+    $: if (scrollSmooth || !scrollSmooth) {
+        saveSettings();
+    }
+
     function saveSettings() {
-        storage.set({ githubUsername, gDoubleTime, vimKeysBlacklistCSV });
+        storage.set({ githubUsername, gDoubleTime, vimKeysBlacklistCSV, scrollSmooth });
     }
 
     let debounceTimer: number;
@@ -49,6 +55,11 @@
 
     const gKeyFunctionInfos = getKeyFunctionInfos(G_KEY_MAP);
     const keyFunctionInfos = getKeyFunctionInfos(KEY_MAP);
+
+    const ID_GU = 'githubUsername';
+    const ID_GDT = 'gDoubleTime';
+    const ID_VKBCSV = 'vimKeysBlacklistCSV';
+    const ID_SS = 'scrollSmooth';
 </script>
 
 <div class="readme-container">
@@ -92,8 +103,9 @@
     {/each}
     <h2>Settings</h2>
     <div class="setting-input">
-        <label for="githubUsername">GitHub Username:</label>
-        <input name="githubUsername"
+        <label for={ID_GU}>GitHub Username:</label>
+        <input id={ID_GU}
+               name={ID_GU}
                bind:value={githubUsername}
                on:keydown={handleSettingInputKey}
                spellcheck="false"
@@ -105,11 +117,12 @@
         >
     </div>
     <div class="setting-input">
-        <label for="gDoubleTime"><K>G</K> Keybinding Timeout:</label>
-        <input name="gDoubleTime"
+        <label for={ID_GDT}><K>G</K> Keybinding Timeout:</label>
+        <input id={ID_GDT}
+               name={ID_GDT}
+               type="number"
                bind:value={gDoubleTime}
                on:keydown={handleSettingInputKey}
-               type="number"
                min="100"
                max="3000"
                spellcheck="false"
@@ -118,14 +131,23 @@
         >
     </div>
     <div class="setting-input">
-        <label for="vimKeysBlacklistCSV">Vim Keys URL Blacklist:</label>
-        <input name="vimKeysBlacklistCSV"
+        <label for={ID_VKBCSV}>Vim Keys URL Blacklist:</label>
+        <input id={ID_VKBCSV}
+               name={ID_VKBCSV}
                bind:value={vimKeysBlacklistCSV}
                on:keydown={handleSettingInputKey}
                class:invalid={vimKeysBlacklistCSVInvalid}
                spellcheck="false"
                autocomplete="false"
                placeholder="google.com, example.com"
+        >
+    </div>
+    <div class="setting-input">
+        <label for={ID_SS}>Scroll Smooth:</label>
+        <input id={ID_SS}
+               name={ID_SS}
+               type="checkbox"
+               bind:checked={scrollSmooth}
         >
     </div>
 </div>

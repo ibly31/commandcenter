@@ -2,12 +2,14 @@ export type IStorage = {
     githubUsername: string;
     gDoubleTime: number;
     vimKeysBlacklistCSV: string;
+    scrollSmooth: boolean;
 };
 
 const defaultStorage: IStorage = {
     githubUsername: import.meta.env.VITE_GITHUB_USERNAME || '',
     gDoubleTime: 350,
     vimKeysBlacklistCSV: 'google.com',
+    scrollSmooth: true,
 };
 
 export const storage = {

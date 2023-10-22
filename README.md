@@ -5,6 +5,9 @@
 ## Todo
 - Reset storage.ts default username to empty string before each release
 - Favicon cache and overrides so it doesn't spam with failed network requests off VPN
+- Set up opinionated auto linting
+- Actually use settings.scrollSmooth
+- Document code files for adding siteScripts and vimKeys
 - GitHub Actions
     - Action to deploy build to Chrome Web Store
 

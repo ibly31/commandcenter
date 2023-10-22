@@ -1,17 +1,26 @@
 import { Action, Msg, postActionMessage, sendMessage } from '../comms/messages';
-import { isFocusedOnInput, triggerPageOffset, urlIncludes } from './utils';
+import {
+    type ContentUrls,
+    isFocusedOnInput,
+    openVideoSourceUrl,
+    reloadPage,
+    scrollTo,
+    triggerPageOffset,
+    urlIncludes
+} from './utils';
 
 type KeyFunction = () => [
-    string, () => void
+    string, () => void, ContentUrls | undefined
 ];
 export type KeyMap = { [key: string]: KeyFunction };
 
-function makeKeyFunction(key: string, description: string, run: () => void): KeyMap {
+function makeKeyFunction(key: string, description: string, run: () => void, urls?: ContentUrls): KeyMap {
     return {
         [key]: () => {
             return [
                 description,
-                run
+                run,
+                urls
             ];
         }
     }
@@ -19,7 +28,7 @@ function makeKeyFunction(key: string, description: string, run: () => void): Key
 
 export const G_KEY_MAP: KeyMap = {
     ...makeKeyFunction('g', 'Scroll to top of page', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollTo('top', 'smooth');
     }),
     ...makeKeyFunction('e', 'Open chrome://extensions page', () => {
         sendMessage(Msg.openExtensions);
@@ -32,6 +41,9 @@ export const G_KEY_MAP: KeyMap = {
     }),
     ...makeKeyFunction('d', 'Go to "Previous Page" by decrementing last number in URL', () => {
         triggerPageOffset(-1);
+    }),
+    ...makeKeyFunction('v', 'Go to video source url', () => {
+        openVideoSourceUrl();
     }),
     ...makeKeyFunction('D', 'Duplicate current tab', () => {
         sendMessage(Msg.duplicateTab);
@@ -52,10 +64,10 @@ export const G_KEY_MAP: KeyMap = {
 
 export const KEY_MAP: KeyMap = {
     ...makeKeyFunction('G', 'Scroll to bottom of page', () => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        scrollTo('bottom', 'smooth');
     }),
     ...makeKeyFunction('r', 'Reload page', () => {
-        window.location.reload();
+        reloadPage();
     }),
     ...makeKeyFunction('x', 'Close current tab', () => {
         sendMessage(Msg.closeCurrentTab);
@@ -68,7 +80,7 @@ export const KEY_MAP: KeyMap = {
     }),
 };
 
-export function setupVimKeys(gDoubleTime: number, vimKeysBlacklist: string[]) {
+export function setupVimKeys(gDoubleTime: number, vimKeysBlacklist: string[], scrollSmooth: boolean) {
     if (urlIncludes(vimKeysBlacklist)) {
         return;
     }
@@ -101,15 +113,23 @@ export function setupVimKeys(gDoubleTime: number, vimKeysBlacklist: string[]) {
             key = '$';
         }
 
+        let keyFunction: KeyFunction | null = null;
         if (key === 'g' && !withinDoubleTime()) {
             LAST_G_TIME = Number(new Date());
         } else if (key in G_KEY_MAP) {
             if (withinDoubleTime()) {
-                G_KEY_MAP[key]()[1]();
+                keyFunction = G_KEY_MAP[key];
                 LAST_G_TIME = 0;
             }
         } else if (key in KEY_MAP) {
-            KEY_MAP[key]()[1]();
+            keyFunction = KEY_MAP[key];
+        }
+        if (!keyFunction) {
+            return;
+        }
+        const [_, execute, urls] = keyFunction();
+        if (urlIncludes(urls)) {
+            execute();
         }
     });
 }
