@@ -3,14 +3,16 @@
 > Fuzzy search through bookmarks, commands and tabs. Accessible via New Tab or on any page with configured keybindings
 
 ## Todo
-- Reset storage.ts default username to empty string before each release
-- Favicon cache and overrides so it doesn't spam with failed network requests off VPN
-- Set up opinionated auto linting
-- Actually use settings.scrollSmooth
-- Document code files for adding siteScripts and vimKeys
-- Share with personal account
-- GitHub Actions
-    - Action to deploy build to Chrome Web Store
+- [ ] Favicon cache and overrides so it doesn't spam with failed network requests off VPN
+- [ ] Handle hover mode better - it's hard to tell difference of selectedIndex and hover
+- [ ] Use Switch.svelte from other extension
+- [ ] Set up opinionated auto linting
+- [ ] Track frequency of the Bookmarks and weight recently used ones to the top
+- [ ] Add option to Blacklist Current Domain like uBlock does
+- [ ] Actually use settings.scrollSmooth
+- [ ] Document code files for adding siteScripts and vimKeys
+- [ ] GitHub Actions
+    - [ ] Action to deploy build to Chrome Web Store
 
 ## Development
 

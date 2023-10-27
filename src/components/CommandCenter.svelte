@@ -130,6 +130,7 @@
         loading = true;
 
         const command = queryCommands[index];
+        console.log('Doing command ', index, command);
         if (command.type === CommandType.CURRENT_TAB) {
             switchToTab(command.id, renderingInPage);
         } else if (command.type === CommandType.EXACT) {
@@ -138,8 +139,9 @@
             } else if (command.id === EXACT_ID_TC) {
                 switchModeHandler?.(Mode.TAB_CENTER);
             } else if (command.id === EXACT_ID_GE) {
-                sendMessage(Msg.openExtensions);
-                !renderingInPage && window.close();
+                sendMessage(Msg.openExtensions, () => {
+                    !renderingInPage && window.close();
+                });
             }
         } else {
             const existingTab = currentTabCommands.find(tabCommand => tabCommand.url === command.url);

@@ -29,10 +29,10 @@
         />
     {:else if mode === Mode.TAB_CENTER}
         <TabCenter
-            largeWidth
-            escapeHandler={() => mode = Mode.COMMAND_CENTER}
-            {focusInputRef}
-            renderingInPage={false}
+                largeWidth
+                escapeHandler={() => mode = Mode.COMMAND_CENTER}
+                {focusInputRef}
+                renderingInPage={false}
         />
     {:else}
         <CommandCenter

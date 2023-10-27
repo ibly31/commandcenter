@@ -3,6 +3,7 @@
     import K from './Key.svelte';
     import { type IStorage, storage } from '../storage';
     import { G_KEY_MAP, KEY_MAP, type KeyMap } from '../content/vimKeys';
+    import Switch from './Switch.svelte';
 
     /** State */
 
@@ -143,12 +144,7 @@
         >
     </div>
     <div class="setting-input">
-        <label for={ID_SS}>Scroll Smooth:</label>
-        <input id={ID_SS}
-               name={ID_SS}
-               type="checkbox"
-               bind:checked={scrollSmooth}
-        >
+        <Switch bind:checked={scrollSmooth} label="Scroll Smooth" />
     </div>
 </div>
 

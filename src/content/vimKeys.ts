@@ -115,7 +115,7 @@ export function setupVimKeys(gDoubleTime: number, vimKeysBlacklist: string[], sc
 
         let keyFunction: KeyFunction | null = null;
         if (key === 'g' && !withinDoubleTime()) {
-            LAST_G_TIME = Number(new Date());
+            LAST_G_TIME = Date.now();
         } else if (key in G_KEY_MAP) {
             if (withinDoubleTime()) {
                 keyFunction = G_KEY_MAP[key];

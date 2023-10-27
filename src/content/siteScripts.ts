@@ -83,6 +83,11 @@ siteScript('meet.google.com', 'Google Meet', () => {
 });
 
 siteScript(['sdxdemo.com', 'response.lithium.com', 'app.khoros.com'], 'Care', () => {
+    if (urlIncludes('/account/login') && !urlIncludes('manual-c01')) {
+        window.location.href = window.location.href.replace('/account/login', '/khoros/login');
+        return;
+    }
+
     function makeConversationNumberClickable() {
         const conversationNumber = document.querySelector<HTMLDivElement>('[tooltip="Conversation Number"]');
         if (conversationNumber && conversationNumber.textContent && conversationNumber.textContent.length > 1) {

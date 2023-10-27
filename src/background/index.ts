@@ -57,11 +57,11 @@ chrome.runtime.onMessage.addListener(
                 });
             });
         } else if (message.moveTabOffset !== undefined) {
-            let index;
+            let index: number;
             if (typeof message.moveTabOffset === 'string') {
                 index = message.moveTabOffset === '0' ? 0 : 123231123;
             } else {
-                index = message.moveTabOffset as number;
+                index = senderTab.index + message.moveTabOffset as number;
             }
             chrome.tabs.move(senderTab.id, { index });
         } else if (message.loadPRsForGithubUsername) {
@@ -103,7 +103,7 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
         delete tabs[tabId];
         closedTabs.splice(0, 0, {
             ...removedTab,
-            closeDate: Number(new Date())
+            closeDate: Date.now()
         });
         if (closedTabs.length > closedCount) {
             closedTabs.splice(closedCount - 1, 1);
