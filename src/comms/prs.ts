@@ -73,23 +73,3 @@ export async function getPRs(githubUsername: string): Promise<PR[]> {
         .sort((a, b) => a.lastVisitTime - b.lastVisitTime)
         .slice(0, maxPRs);
 }
-
-export async function getPRsFromApi(githubApiToken: string): Promise<PR[]> {
-    return [];
-    //
-    // return items
-    //     .map(makePR)
-    //     .filter(pr => pr !== null)
-    //     .map(pr => pr!)
-    //     .filter(pr => {
-    //         const { org, repo, id } = pr;
-    //         const compositeId = `${org}/${repo}/${id}`;
-    //         if (seenCompositeIds.has(compositeId)) {
-    //             return false;
-    //         }
-    //         seenCompositeIds.add(compositeId);
-    //         return true;
-    //     })
-    //     .sort((a, b) => a.lastVisitTime - b.lastVisitTime)
-    //     .slice(0, maxPRs);
-}

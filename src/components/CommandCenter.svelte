@@ -14,7 +14,6 @@
     import { type CommandMessageResponse, Msg, sendMessage } from '../comms/messages';
     import { offsetSelectedIndex, switchToTab } from './utils';
 
-    const EXACT_ID_PRC = 'prc';
     const EXACT_ID_TC = 'tc';
     const EXACT_ID_GE = 'ge';
 
@@ -47,14 +46,6 @@
     });
 
     let exactCommands: Command[] = [
-        {
-            type: CommandType.EXACT,
-            id: EXACT_ID_PRC,
-            icon: DEFAULT_FAVICON_URL,
-            url: '',
-            title: 'prc - PR Center',
-            sortDate: 0
-        },
         {
             type: CommandType.EXACT,
             id: EXACT_ID_TC,
@@ -142,8 +133,6 @@
         } else if (command.type === CommandType.EXACT) {
             if (command.id === EXACT_ID_TC) {
                 switchModeHandler?.(Mode.TAB_CENTER);
-            } else if (command.id === EXACT_ID_PRC) {
-                switchModeHandler?.(Mode.PR_CENTER);
             } else if (command.id === EXACT_ID_GE) {
                 const existingTab = currentTabCommands.find(tabCommand => tabCommand.url.startsWith('chrome://extensions'));
                 if (existingTab) {
@@ -214,6 +203,7 @@
     </div>
     <div class="commands-list">
         {#each queryCommands as command, index (command.id)}
+            <!-- svelte-ignore a11y-mouse-events-have-key-events -->
             <a href={command.url}
                class="command"
                class:selected={index === selectedIndex}
