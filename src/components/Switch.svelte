@@ -6,13 +6,14 @@
     // On Designing and Building Toggle Switches by Sara Soueidan https://www.sarasoueidan.com/blog/toggle-switch-design/
     // and this example by Scott O'hara https://codepen.io/scottohara/pen/zLZwNv
 
-    export let label: string;
+    export let label: string = '';
+    export let id: string = '';
     export let checked: boolean;
     export let onChange: () => void = () => {};
 
     let clicked = false;
 
-    let switchLabel = `switch-${label}`;
+    let switchId = id || label;
 
     function onClick() {
         checked = !checked;
@@ -22,10 +23,12 @@
 </script>
 
 <div class="switch">
-    <label for={switchLabel}>{label}:</label>
+    {#if label?.length}
+        <label for={switchId}>{label}:</label>
+    {/if}
     <button
-            id={switchLabel}
-            name={switchLabel}
+            id={switchId}
+            name={switchId}
             role="switch"
             class:animate={clicked}
             aria-checked={checked}
@@ -40,6 +43,7 @@
         display: flex;
         align-items: center;
         margin-right: 10px;
+        flex-grow: 1;
 
         button, label {
             cursor: pointer;

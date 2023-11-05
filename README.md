@@ -4,8 +4,6 @@
 
 ## Todo
 - [ ] Favicon cache and overrides so it doesn't spam with failed network requests off VPN
-- [ ] Handle hover mode better - it's hard to tell difference of selectedIndex and hover
-- [ ] Use Switch.svelte from other extension
 - [ ] Set up opinionated auto linting
 - [ ] Track frequency of the Bookmarks and weight recently used ones to the top
 - [ ] Add option to Blacklist Current Domain like uBlock does
@@ -13,6 +11,8 @@
 - [ ] Document code files for adding siteScripts and vimKeys
 - [ ] GitHub Actions
     - [ ] Action to deploy build to Chrome Web Store
+- [x] Handle hover mode better - it's hard to tell difference of selectedIndex and hover
+- [x] Use Switch.svelte from other extension
 
 ## Development
 

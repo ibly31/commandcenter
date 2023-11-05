@@ -4,7 +4,7 @@ import { getPRs } from './prs';
 export enum Mode {
     COMMAND_CENTER = 'COMMAND_CENTER',
     TAB_CENTER = 'TAB_CENTER',
-    PR_CENTER = 'PR_CENTER'
+    PR_CENTER = 'PR_CENTER',
 }
 
 export enum CommandType {

@@ -15,7 +15,7 @@
     }
 
     /** State */
-    let githubUsername = '';
+    let githubApiToken = '';
     let query = '';
     let tabInputRef: HTMLInputElement;
     let selectedIndex = 0;
@@ -23,11 +23,11 @@
     let prs: PR[] = [];
 
     storage.get().then((storage: IStorage) => {
-        githubUsername = storage.githubUsername;
+        githubApiToken = storage.githubApiToken;
     });
 
     $: sendMessage({
-        loadPRsForGithubUsername: githubUsername
+        loadPRsForGithubApiToken: githubApiToken
     }, (response: PRMessageResponse) => {
         console.log('rcv response', response);
         prs = response.prs ?? [];
