@@ -66,8 +66,6 @@ chrome.runtime.onMessage.addListener(
             chrome.tabs.move(senderTab.id, { index });
         } else if (message.loadPRsForGithubUsername) {
             getPRs(message.loadPRsForGithubUsername).then(prs => sendResponse({ prs }));
-        } else if (message.loadPRsForGithubApiToken) {
-            getPRsFromApi(message.loadPRsForGithubApiToken).then(prs => sendResponse({ prs }));
         }
         return true;
     }

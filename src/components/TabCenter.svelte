@@ -147,6 +147,7 @@
     </div>
     <div class="tabs-list">
     {#each queryTabs as tab, index (tab.id)}
+        <!-- svelte-ignore a11y-mouse-events-have-key-events -->
         <div
            class="tab"
            class:selected={index === selectedIndex}
