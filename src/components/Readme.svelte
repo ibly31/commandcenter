@@ -1,7 +1,7 @@
 <script lang="ts">
     import KeyFunctionDescription from './KeyFunctionDescription.svelte';
     import K from './Key.svelte';
-    import { type IStorage, storage } from '../storage';
+    import { type IStorage, resetStorage, storage } from '../storage';
     import { G_KEY_MAP, KEY_MAP, type KeyMap } from '../content/vimKeys';
     import Switch from './Switch.svelte';
 
@@ -143,8 +143,13 @@
                placeholder="google.com, example.com"
         >
     </div>
+    <div class="setting-input align-center">
+        <label for={ID_SS}>Smooth Scroll:</label>
+        <Switch id={ID_SS} bind:checked={scrollSmooth} />
+    </div>
     <div class="setting-input">
-        <Switch bind:checked={scrollSmooth} label="Scroll Smooth" />
+        <label for="resetStorage">Reset Storage:</label>
+        <button id="resetStorage" on:click={() => resetStorage().then(window.close)}>Reset Storage</button>
     </div>
 </div>
 
@@ -175,12 +180,27 @@
         align-items: baseline;
         font-size: 15px;
 
+        &.align-center {
+            align-items: center;
+        }
+
         label {
             margin-right: 10px;
             width: 35%;
         }
 
+        button {
+            outline: 0;
+            font-size: 1.2rem;
+            line-height: 1.2;
+            background-color: $kh-red;
+            color: $kh-white;
+            border-radius: 5px;
+            border: 0;
+        }
+
         input {
+            flex-grow: 1;
             margin-top: 5px;
             padding: 10px 10px;
             font-size: 15px;
@@ -188,7 +208,6 @@
             background-color: $kh-white;
             border: 1px solid $kh-silver;
             border-radius: 5px;
-            flex-grow: 1;
 
             &:invalid, &.invalid {
                 outline: 1px solid $kh-red;

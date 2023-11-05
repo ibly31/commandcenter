@@ -152,6 +152,7 @@
            class:selected={index === selectedIndex}
            class:is-other-window={!tab.inCurrentWindow}
            on:click={() => switchToTab(tab.id, renderingInPage)}
+           on:mouseover={() => selectedIndex = index}
         >
             <span class="tab-icon">
                 <img src={tab.favIconUrl} alt={tab.title} />
@@ -249,7 +250,7 @@
                     border-top: none;
                 }
 
-                &.selected, &:hover {
+                &.selected {
                     background-color: $kh-blue;
                 }
 

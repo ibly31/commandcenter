@@ -17,6 +17,7 @@ export type Message = {
     moveTabOffset?: number | string;
     reopenTab?: TabInfo;
     loadPRsForGithubUsername?: string;
+    loadPRsForGithubApiToken?: string;
 
     directive?: keyof typeof Msg;
 };

@@ -126,22 +126,32 @@
         return b.item.sortDate - a.item.sortDate;
     }
 
+    function onCommandHover(index: number) {
+        if (index === selectedIndex) {
+            return;
+        }
+        selectedIndex = index;
+    }
+
     function doCommand(index: number, metaKey?: boolean) {
         loading = true;
 
         const command = queryCommands[index];
-        console.log('Doing command ', index, command);
         if (command.type === CommandType.CURRENT_TAB) {
             switchToTab(command.id, renderingInPage);
         } else if (command.type === CommandType.EXACT) {
-            if (command.id === EXACT_ID_PRC) {
-                switchModeHandler?.(Mode.PR_CENTER);
-            } else if (command.id === EXACT_ID_TC) {
+            if (command.id === EXACT_ID_TC) {
                 switchModeHandler?.(Mode.TAB_CENTER);
+            } else if (command.id === EXACT_ID_PRC) {
+                switchModeHandler?.(Mode.PR_CENTER);
             } else if (command.id === EXACT_ID_GE) {
-                sendMessage(Msg.openExtensions, () => {
+                const existingTab = currentTabCommands.find(tabCommand => tabCommand.url.startsWith('chrome://extensions'));
+                if (existingTab) {
+                    switchToTab(existingTab.id, renderingInPage);
+                } else {
+                    sendMessage(Msg.openExtensions);
                     !renderingInPage && window.close();
-                });
+                }
             }
         } else {
             const existingTab = currentTabCommands.find(tabCommand => tabCommand.url === command.url);
@@ -207,6 +217,7 @@
             <a href={command.url}
                class="command"
                class:selected={index === selectedIndex}
+               on:mouseover={() => onCommandHover(index)}
                on:click|preventDefault={() => doCommand(index)}
             >
             <span class="command-icon">
@@ -219,7 +230,7 @@
                         shouldHighlight={!command.isSearchUrl}
                         indices={command.matchIndices}
                 />
-                    {#if command.url?.length}
+                {#if command.url?.length}
                 <HighlightText
                         text={command.url}
                         shouldHighlight={command.isSearchUrl}
@@ -332,7 +343,7 @@
                     border-top: none;
                 }
 
-                &.selected, &:hover {
+                &.selected {
                     background-color: $kh-blue;
                 }
 
