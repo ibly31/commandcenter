@@ -1,4 +1,5 @@
 import { type ContentUrls, queryEachAnchor, retryAction, urlIncludes } from './utils';
+import type { HTMLImgAttributes } from 'svelte/elements';
 
 type SiteScript = {
     urls: ContentUrls;
@@ -14,15 +15,24 @@ function siteScript(urls: ContentUrls, description: string, setup: () => void) {
 siteScript('jira.dev.lithium.com', 'Jira', () => {
     // make the popup dialogs actually use all the screen real estate
     const style = document.createElement('style');
+    style.id = 'commandcenter-jira';
     style.textContent = `
         section#create-issue-dialog, section#edit-issue-dialog {
             top: 10px;
             bottom: 10px;
             width: 80%;
         }
+        
+        .jira-dialog.popup-width-large {
+            width: 80% !important;
+        }
 
         .aui-dialog2-content.jira-dialog-core-content {
             max-height: 100%;
+        }
+        
+        .tox .tox-edit-area__iframe[title="Rich Text Area"] {
+            /*padding: 0 7px !important;*/
         }
         `;
     document.head.appendChild(style);
@@ -49,7 +59,7 @@ siteScript('reddit.com', 'Reddit', () => {
 
 siteScript('github.com', 'GitHub', () => {
     function retryStatusActions() {
-        retryAction(15, 250, () => {
+        retryAction(100, 500, () => {
             let foundOne = false;
             queryEachAnchor('a.status-actions', a => {
                 a.href = a.href.replace('/display/redirect', '')
@@ -60,7 +70,7 @@ siteScript('github.com', 'GitHub', () => {
         });
     }
 
-    retryAction(15, 250, () => {
+    retryAction(100, 500, () => {
         let foundOne = false;
         queryEachAnchor('.statuses-toggle-closed', a => {
             a.onclick = retryStatusActions;
@@ -71,7 +81,7 @@ siteScript('github.com', 'GitHub', () => {
 });
 
 siteScript('meet.google.com', 'Google Meet', () => {
-    retryAction(5, 250, () => {
+    retryAction(15, 100, () => {
         let didMute = false;
         const muteButtons = document.querySelectorAll<HTMLButtonElement>('[role="button"][data-is-muted="false"]');
         if (muteButtons.length === 2) {
@@ -79,6 +89,26 @@ siteScript('meet.google.com', 'Google Meet', () => {
             didMute = true;
         }
         return didMute;
+    });
+});
+
+siteScript('awsapps.com', 'AWS SSO', () => {
+    retryAction(5, 100, () => {
+        const portalApplication = document.querySelector<HTMLDivElement>('portal-application');
+        if (portalApplication) {
+            portalApplication.click();
+
+            retryAction(3, 20, () => {
+                const expandIcons = document.querySelectorAll<HTMLImageElement>('.expandIcon');
+                if (expandIcons?.length) {
+                    expandIcons.forEach(ei => ei.click());
+                    return true;
+                }
+                return false;
+            });
+            return true;
+        }
+        return false;
     });
 });
 

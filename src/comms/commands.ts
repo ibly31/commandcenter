@@ -90,7 +90,7 @@ export async function loadBookmarkCommands(): Promise<Command[]> {
 }
 
 function bookmarksToCommands(rootNode: chrome.bookmarks.BookmarkTreeNode[]): Command[] {
-    const bookmarksBar = rootNode[0]?.children?.filter(node => node.title === 'Bookmarks Bar');
+    const bookmarksBar = rootNode[0]?.children?.filter(node => node.title?.startsWith('Bookmarks'));
     const flattened = flattenTree(bookmarksBar[0]?.children);
     flattened.sort((a, b) => Number(a.id) - Number(b.id));
     const fullTitleMap: { [id: string]: string } = flattened.reduce((ftm, bm) => {

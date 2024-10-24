@@ -12,6 +12,7 @@ export const Msg = {
 };
 
 export type Message = {
+    openTabUrl?: string;
     switchToTabId?: number;
     removeTabId?: number;
     moveTabOffset?: number | string;

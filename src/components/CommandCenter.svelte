@@ -124,7 +124,7 @@
         selectedIndex = index;
     }
 
-    function doCommand(index: number, metaKey?: boolean) {
+    function doCommand(index: number, metaKey?: boolean, shiftKey?: boolean) {
         loading = true;
 
         const command = queryCommands[index];
@@ -147,6 +147,8 @@
             // If Cmd-Enter, never reuse an existing tab
             if (!metaKey && existingTab) {
                 switchToTab(existingTab.id, renderingInPage);
+            } else if (shiftKey || metaKey) {
+                sendMessage({ openTabUrl: command.url });
             } else {
                 window.location.href = command.url;
             }
@@ -173,7 +175,7 @@
         } else if (key === 'ArrowDown') {
             selectedIndex = offsetSelectedIndex(1, selectedIndex, queryCommands.length);
         } else if (key === 'Enter' && queryCommands[selectedIndex]) {
-            doCommand(selectedIndex, event.metaKey);
+            doCommand(selectedIndex, event.metaKey, event.shiftKey);
         } else if (key === 'Escape') {
             selectedIndex = 0;
             query = '';
@@ -207,8 +209,8 @@
             <a href={command.url}
                class="command"
                class:selected={index === selectedIndex}
-               on:mouseover={() => onCommandHover(index)}
-               on:click|preventDefault={() => doCommand(index)}
+               on:mouseenter={() => onCommandHover(index)}
+               on:click|preventDefault={(event) => doCommand(index, event.metaKey, event.shiftKey)}
             >
             <span class="command-icon">
                 <img src={command.icon} alt={command.title} />

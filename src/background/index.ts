@@ -24,7 +24,8 @@ chrome.runtime.onMessage.addListener(
             if (message.directive === Msg.openExtensions) {
                 chrome.tabs.create({ url: 'chrome://extensions' });
             } else if (message.directive === Msg.closeCurrentTab) {
-                chrome.tabs.remove(senderTab.id, () => {});
+                chrome.tabs.remove(senderTab.id, () => {
+                });
             } else if (message.directive === Msg.duplicateTab) {
                 chrome.tabs.duplicate(senderTab.id);
             } else if (message.directive === Msg.loadAllCommands) {
@@ -38,6 +39,8 @@ chrome.runtime.onMessage.addListener(
                     closedTabCommands: getClosedTabCommands()
                 });
             }
+        } else if (message.openTabUrl !== undefined) {
+            chrome.tabs.create({ index: senderTab.index + 1, url: message.openTabUrl, active: true });
         } else if (message.switchToTabId !== undefined) {
             chrome.tabs.update(message.switchToTabId, { active: true });
         } else if (message.removeTabId !== undefined) {

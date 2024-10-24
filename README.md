@@ -3,6 +3,9 @@
 > Fuzzy search through bookmarks, commands and tabs. Accessible via New Tab or on any page with configured keybindings
 
 ## Todo
+- [ ] Quick links popup with keyboard chords
+- [ ] Don't allow mouseover list items until mouse has moved X pixels
+  - [x] Fixed partially with mouseenter
 - [ ] Favicon cache and overrides so it doesn't spam with failed network requests off VPN
 - [ ] Set up opinionated auto linting
 - [ ] Track frequency of the Bookmarks and weight recently used ones to the top
