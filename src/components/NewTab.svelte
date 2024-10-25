@@ -3,9 +3,9 @@
     import TabCenter from './TabCenter.svelte';
     import { Mode } from '../comms/commands';
 
-    let focusInputRef = false;
+    let focusInputRef = $state(false);
 
-    let mode = Mode.COMMAND_CENTER;
+    let mode = $state(Mode.COMMAND_CENTER);
 
     function togglefocusInputRef() {
         focusInputRef = true;
@@ -15,9 +15,9 @@
     }
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="container" on:click={() => togglefocusInputRef()}>
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="container" onclick={() => togglefocusInputRef()}>
     {#if mode === Mode.TAB_CENTER}
         <TabCenter
                 largeWidth

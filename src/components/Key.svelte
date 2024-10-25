@@ -1,12 +1,17 @@
 <script lang="ts">
-    export let small = false;
+    interface Props {
+        small?: boolean;
+        children?: import('svelte').Snippet;
+    }
+
+    let { small = false, children }: Props = $props();
 
     const lineHeight = small ? 11 : 15;
     const height = small ? 10 : 15;
 </script>
 
 <code style="line-height: {lineHeight}px; height: {height}px">
-    <slot />
+    {@render children?.()}
 </code>
 
 <style lang="scss">

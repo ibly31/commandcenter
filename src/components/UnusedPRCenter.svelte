@@ -1,4 +1,7 @@
 <script lang="ts">
+    import { run, createBubbler, stopPropagation } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import HighlightText from './HighlightText.svelte';
     import { Fzf, type FzfResultItem } from 'fzf';
     import { type IStorage, storage } from '../storage';
@@ -6,41 +9,31 @@
     import type { PR, PRMessageResponse } from '../comms/prs';
     import { offsetSelectedIndex, switchToTab } from './utils';
 
-    /** Props */
-    export let largeWidth = false;
-    export let focusInputRef = false;
-    export let escapeHandler: () => void;
-    $: if (focusInputRef) {
-        tabInputRef?.focus();
+    
+    interface Props {
+        /** Props */
+        largeWidth?: boolean;
+        focusInputRef?: boolean;
+        escapeHandler: () => void;
     }
 
-    /** State */
-    let githubUsername = '';
-    let query = '';
-    let tabInputRef: HTMLInputElement;
-    let selectedIndex = 0;
+    let { largeWidth = false, focusInputRef = false, escapeHandler }: Props = $props();
 
-    let prs: PR[] = [];
+    /** State */
+    let githubUsername = $state('');
+    let query = $state('');
+    let tabInputRef: HTMLInputElement = $state();
+    let selectedIndex = $state(0);
+
+    let prs: PR[] = $state([]);
 
     storage.get().then((storage: IStorage) => {
         githubUsername = storage.githubUsername;
     });
 
-    $: sendMessage({
-        loadPRsForGithubUsername: githubUsername
-    }, (response: PRMessageResponse) => {
-        prs = response.prs ?? [];
-    });
 
-    $: if (query) {
-        selectedIndex = 0;
-    }
 
-    let queryPRs: PR[];
-    $: {
-        queryPRs = searchPRs(prs, query);
-        selectedIndex = offsetSelectedIndex(0, selectedIndex, queryPRs.length);
-    }
+    let queryPRs: PR[] = $state();
 
     function searchSelector(pr: PR): string {
         return pr.searchEntry.replaceAll('-', ' ');
@@ -90,22 +83,43 @@
             }
         }
     }
+    run(() => {
+        if (focusInputRef) {
+            tabInputRef?.focus();
+        }
+    });
+    run(() => {
+        sendMessage({
+            loadPRsForGithubUsername: githubUsername
+        }, (response: PRMessageResponse) => {
+            prs = response.prs ?? [];
+        });
+    });
+    run(() => {
+        if (query) {
+            selectedIndex = 0;
+        }
+    });
+    run(() => {
+        queryPRs = searchPRs(prs, query);
+        selectedIndex = offsetSelectedIndex(0, selectedIndex, queryPRs.length);
+    });
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="prs-container" class:large-width={largeWidth} on:click|stopPropagation>
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="prs-container" class:large-width={largeWidth} onclick={stopPropagation(bubble('click'))}>
     {#if !githubUsername}
         <div class="error-container">
             No configured Github Username - visit the extension Options
         </div>
     {:else}
-        <!-- svelte-ignore a11y-autofocus -->
+        <!-- svelte-ignore a11y_autofocus -->
         <div class="input-container">
             <input class="pr-input"
                    bind:this={tabInputRef}
                    bind:value={query}
-                   on:keydown={handleInputKey}
+                   onkeydown={handleInputKey}
                    spellcheck="false"
                    autocomplete="false"
                    placeholder="Search Pull Requests..."
@@ -118,7 +132,7 @@
                 <a href={pr.url}
                    class="pr"
                    class:selected={index === selectedIndex}
-                   on:click={() => openPR(pr.id)}
+                   onclick={() => openPR(pr.id)}
                 >
                     <span class="pr-icon">
                         <img src="https://github.githubassets.com/favicons/favicon-dark.svg" alt={pr.title} />

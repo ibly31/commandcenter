@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import KeyFunctionDescription from './KeyFunctionDescription.svelte';
     import K from './Key.svelte';
     import { type IStorage, resetStorage, storage } from '../storage';
@@ -7,10 +9,10 @@
 
     /** State */
 
-    let githubUsername = '';
-    let gDoubleTime = 350;
-    let vimKeysBlacklistCSV = '';
-    let scrollSmooth = true;
+    let githubUsername = $state('');
+    let gDoubleTime = $state(350);
+    let vimKeysBlacklistCSV = $state('');
+    let scrollSmooth = $state(true);
     storage.get().then((storage: IStorage) => {
         githubUsername = storage.githubUsername;
         gDoubleTime = storage.gDoubleTime;
@@ -19,12 +21,7 @@
     });
 
     const csvUrlRe = /^[.a-z0-9,_ -]*$/
-    $: vimKeysBlacklistCSVInvalid = !csvUrlRe.test(vimKeysBlacklistCSV);
 
-    // TODO: Is there a way to just call on scrollSmooth change?
-    $: if (scrollSmooth || !scrollSmooth) {
-        saveSettings();
-    }
 
     function saveSettings() {
         storage.set({ githubUsername, gDoubleTime, vimKeysBlacklistCSV, scrollSmooth });
@@ -61,6 +58,13 @@
     const ID_GDT = 'gDoubleTime';
     const ID_VKBCSV = 'vimKeysBlacklistCSV';
     const ID_SS = 'scrollSmooth';
+    let vimKeysBlacklistCSVInvalid = $derived(!csvUrlRe.test(vimKeysBlacklistCSV));
+    // TODO: Is there a way to just call on scrollSmooth change?
+    run(() => {
+        if (scrollSmooth || !scrollSmooth) {
+            saveSettings();
+        }
+    });
 </script>
 
 <div class="readme-container">
@@ -108,7 +112,7 @@
         <input id={ID_GU}
                name={ID_GU}
                bind:value={githubUsername}
-               on:keydown={handleSettingInputKey}
+               onkeydown={handleSettingInputKey}
                spellcheck="false"
                autocomplete="false"
                placeholder="GitHub Username"
@@ -123,7 +127,7 @@
                name={ID_GDT}
                type="number"
                bind:value={gDoubleTime}
-               on:keydown={handleSettingInputKey}
+               onkeydown={handleSettingInputKey}
                min="100"
                max="3000"
                spellcheck="false"
@@ -136,7 +140,7 @@
         <input id={ID_VKBCSV}
                name={ID_VKBCSV}
                bind:value={vimKeysBlacklistCSV}
-               on:keydown={handleSettingInputKey}
+               onkeydown={handleSettingInputKey}
                class:invalid={vimKeysBlacklistCSVInvalid}
                spellcheck="false"
                autocomplete="false"
@@ -149,7 +153,7 @@
     </div>
     <div class="setting-input">
         <label for="resetStorage">Reset Storage:</label>
-        <button id="resetStorage" on:click={() => resetStorage().then(window.close)}>Reset Storage</button>
+        <button id="resetStorage" onclick={() => resetStorage().then(window.close)}>Reset Storage</button>
     </div>
 </div>
 

@@ -1,6 +1,10 @@
 <script lang="ts">
     import { CommandType, COMMAND_TYPE_LABELS } from '../comms/commands';
-    export let type: CommandType;
+    interface Props {
+        type: CommandType;
+    }
+
+    let { type }: Props = $props();
 
 </script>
 

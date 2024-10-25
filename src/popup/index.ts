@@ -1,9 +1,10 @@
 import Popup from '../components/Popup.svelte';
+import { mount } from "svelte";
 
 function render() {
-    new Popup({
-        target: document.body
-    });
+    mount(Popup, {
+            target: document.body
+        });
 }
 
 document.addEventListener("DOMContentLoaded", render);

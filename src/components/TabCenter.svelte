@@ -1,4 +1,7 @@
 <script lang="ts">
+    import { run, createBubbler, stopPropagation } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import HighlightText from './HighlightText.svelte';
     import CloseButton from './CloseButton.svelte';
     import TabPinnedButton from './TabPinnedButton.svelte';
@@ -7,36 +10,36 @@
     import type { TabInfo, TabMessageResponse } from '../comms/tabs';
     import { offsetSelectedIndex, switchToTab } from './utils';
 
-    /** Props */
-    export let largeWidth = false;
-    export let focusInputRef = false;
-    export let escapeHandler: () => void;
-    export let renderingInPage: boolean;
-    $: if (focusInputRef) {
-        tabInputRef?.focus();
+    
+    interface Props {
+        /** Props */
+        largeWidth?: boolean;
+        focusInputRef?: boolean;
+        escapeHandler: () => void;
+        renderingInPage: boolean;
     }
 
-    /** State */
-    let query = '';
-    let tabInputRef: HTMLInputElement;
-    let selectedIndex = 0;
+    let {
+        largeWidth = false,
+        focusInputRef = false,
+        escapeHandler,
+        renderingInPage
+    }: Props = $props();
 
-    let currentTabs: TabInfo[] = [];
+    /** State */
+    let query = $state('');
+    let tabInputRef: HTMLInputElement = $state();
+    let selectedIndex = $state(0);
+
+    let currentTabs: TabInfo[] = $state([]);
     let closedTabs: TabInfo[] = [];
 
     sendMessage(Msg.loadCurrentTabs, (response: TabMessageResponse) => {
         currentTabs = response.currentTabs ?? [];
     });
 
-    $: if (query) {
-        selectedIndex = 0;
-    }
 
-    let queryTabs: TabInfo[];
-    $: {
-        queryTabs = searchAllTabs(currentTabs, query);
-        selectedIndex = offsetSelectedIndex(0, selectedIndex, queryTabs.length);
-    }
+    let queryTabs: TabInfo[] = $state();
 
     function searchSelector(tab: TabInfo): string {
         return tab.title.replaceAll('-', ' ');
@@ -127,17 +130,31 @@
             event.preventDefault();
         }
     }
+    run(() => {
+        if (focusInputRef) {
+            tabInputRef?.focus();
+        }
+    });
+    run(() => {
+        if (query) {
+            selectedIndex = 0;
+        }
+    });
+    run(() => {
+        queryTabs = searchAllTabs(currentTabs, query);
+        selectedIndex = offsetSelectedIndex(0, selectedIndex, queryTabs.length);
+    });
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="tabs-container" class:large-width={largeWidth} on:click|stopPropagation>
-    <!-- svelte-ignore a11y-autofocus -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="tabs-container" class:large-width={largeWidth} onclick={stopPropagation(bubble('click'))}>
+    <!-- svelte-ignore a11y_autofocus -->
     <div class="input-container">
         <input class="tab-input"
                bind:this={tabInputRef}
                bind:value={query}
-               on:keydown={handleInputKey}
+               onkeydown={handleInputKey}
                spellcheck="false"
                autocomplete="false"
                placeholder="Search tabs..."
@@ -147,13 +164,13 @@
     </div>
     <div class="tabs-list">
     {#each queryTabs as tab, index (tab.id)}
-        <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+        <!-- svelte-ignore a11y_mouse_events_have_key_events -->
         <div
            class="tab"
            class:selected={index === selectedIndex}
            class:is-other-window={!tab.inCurrentWindow}
-           on:click={() => switchToTab(tab.id, renderingInPage)}
-           on:mouseover={() => selectedIndex = index}
+           onclick={() => switchToTab(tab.id, renderingInPage)}
+           onmouseover={() => selectedIndex = index}
         >
             <span class="tab-icon">
                 <img src={tab.favIconUrl} alt={tab.title} />

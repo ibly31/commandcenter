@@ -3,6 +3,7 @@ import TabCenter from '../components/TabCenter.svelte';
 
 import './styles.css';
 import { Action, Msg, postActionMessage, Source } from '../comms/messages';
+import { mount } from "svelte";
 
 type RenderResult =  () => void;
 
@@ -36,17 +37,17 @@ function renderCommandCenter(): RenderResult {
         removeContainer();
     }
 
-    commandCenter = new CommandCenter({
-        target,
-        props: {
-            focusInputRef: true,
-            renderingInPage: true,
-            escapeHandler: () => destroy(),
-            switchModeHandler: () => {
-                postActionMessage(Action.close);
+    commandCenter = mount(CommandCenter, {
+            target,
+            props: {
+                focusInputRef: true,
+                renderingInPage: true,
+                escapeHandler: () => destroy(),
+                switchModeHandler: () => {
+                    postActionMessage(Action.close);
+                }
             }
-        }
-    });
+        });
     return () => destroy();
 }
 
@@ -59,15 +60,15 @@ function renderTabCenter(): RenderResult {
         removeContainer();
     }
 
-    tabCenter = new TabCenter({
-        target,
-        props: {
-            focusInputRef: true,
-            renderingInPage: true,
-            escapeHandler: () => destroy(),
-            switchModeHandler: () => destroy()
-        }
-    });
+    tabCenter = mount(TabCenter, {
+            target,
+            props: {
+                focusInputRef: true,
+                renderingInPage: true,
+                escapeHandler: () => destroy(),
+                switchModeHandler: () => destroy()
+            }
+        });
     return () => destroy();
 }
 

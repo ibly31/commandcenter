@@ -4,14 +4,24 @@
     // based on suggestions from:
     // Inclusive Components by Heydon Pickering https://inclusive-components.design/toggle-button/
     // On Designing and Building Toggle Switches by Sara Soueidan https://www.sarasoueidan.com/blog/toggle-switch-design/
-    // and this example by Scott O'hara https://codepen.io/scottohara/pen/zLZwNv
 
-    export let label: string = '';
-    export let id: string = '';
-    export let checked: boolean;
-    export let onChange: () => void = () => {};
 
-    let clicked = false;
+    interface Props {
+        // and this example by Scott O'hara https://codepen.io/scottohara/pen/zLZwNv
+        label?: string;
+        id?: string;
+        checked: boolean;
+        onChange?: () => void;
+    }
+
+    let {
+        label = '',
+        id = '',
+        checked = $bindable(),
+        onChange = () => {}
+    }: Props = $props();
+
+    let clicked = $state(false);
 
     let switchId = id || label;
 
@@ -30,9 +40,10 @@
             id={switchId}
             name={switchId}
             role="switch"
+            aria-label="switch"
             class:animate={clicked}
             aria-checked={checked}
-            on:click={onClick}>
+            onclick={onClick}>
     </button>
 </div>
 
