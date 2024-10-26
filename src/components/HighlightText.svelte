@@ -1,9 +1,9 @@
 <script lang="ts">
-    interface Props {
+    type Props = {
         text: string;
         shouldHighlight?: boolean;
         indices?: Set<number>;
-    }
+    };
 
     let { text, shouldHighlight = true, indices = new Set() }: Props = $props();
 </script>

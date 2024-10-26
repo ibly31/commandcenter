@@ -1,8 +1,8 @@
 <script lang="ts">
-    interface Props {
+    type Props = {
         small?: boolean;
         children?: import('svelte').Snippet;
-    }
+    };
 
     let { small = false, children }: Props = $props();
 

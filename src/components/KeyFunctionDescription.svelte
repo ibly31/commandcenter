@@ -1,9 +1,9 @@
 <script lang="ts">
     import K from './Key.svelte';
-    interface Props {
+    type Props = {
         key: string;
         description: string;
-    }
+    };
 
     let { key, description }: Props = $props();
 </script>

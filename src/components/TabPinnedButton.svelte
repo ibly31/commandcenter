@@ -1,7 +1,7 @@
 <script lang="ts">
-    interface Props {
+    type Props = {
         onClick: () => void;
-    }
+    };
 
     let { onClick }: Props = $props();
 </script>

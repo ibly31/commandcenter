@@ -1,7 +1,4 @@
 <script lang="ts">
-    import { run, createBubbler, stopPropagation } from 'svelte/legacy';
-
-    const bubble = createBubbler();
     import HighlightText from './HighlightText.svelte';
     import { Fzf, type FzfResultItem } from 'fzf';
     import { type IStorage, storage } from '../storage';
@@ -10,12 +7,12 @@
     import { offsetSelectedIndex, switchToTab } from './utils';
 
 
-    interface Props {
+    type Props = {
         /** Props */
         largeWidth?: boolean;
         focusInputRef?: boolean;
         escapeHandler: () => void;
-    }
+    };
 
     let { largeWidth = false, focusInputRef = false, escapeHandler }: Props = $props();
 
@@ -107,7 +104,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="prs-container" class:large-width={largeWidth} onclick={stopPropagation(bubble('click'))}>
+<div class="prs-container" class:large-width={largeWidth} onclick={e => e.stopPropagation()}>
     {#if !githubUsername}
         <div class="error-container">
             No configured Github Username - visit the extension Options

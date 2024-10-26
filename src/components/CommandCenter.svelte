@@ -1,7 +1,4 @@
 <script lang="ts">
-    import { createBubbler, stopPropagation, preventDefault } from 'svelte/legacy';
-
-    const bubble = createBubbler();
     import { Fzf, type FzfResultItem } from 'fzf';
     import HighlightText from './HighlightText.svelte';
     import CommandTypeBadge from './CommandTypeBadge.svelte';
@@ -22,14 +19,14 @@
     const EXACT_ID_Q = 'q';
 
 
-    interface Props {
+    type Props = {
         /** Props */
         largeWidth?: boolean;
         focusInputRef?: boolean;
         escapeHandler: () => void;
         switchModeHandler: (mode: Mode) => void;
         renderingInPage: boolean;
-    }
+    };
 
     let {
         largeWidth = false,
@@ -217,7 +214,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="commands-container" class:large-width={largeWidth} onclick={stopPropagation(bubble('click'))}>
+<div class="commands-container" class:large-width={largeWidth} onclick={e => e.stopPropagation()}>
     <div class="input-container" class:loading={loading}>
         <!-- svelte-ignore a11y_autofocus -->
         <input class="command-input"

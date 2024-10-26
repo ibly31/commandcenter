@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import KeyFunctionDescription from './KeyFunctionDescription.svelte';
     import K from './Key.svelte';
     import { type IStorage, resetStorage, storage } from '../storage';

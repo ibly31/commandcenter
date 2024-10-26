@@ -6,13 +6,13 @@
     // On Designing and Building Toggle Switches by Sara Soueidan https://www.sarasoueidan.com/blog/toggle-switch-design/
 
 
-    interface Props {
+    type Props = {
         // and this example by Scott O'hara https://codepen.io/scottohara/pen/zLZwNv
         label?: string;
         id?: string;
         checked: boolean;
         onChange?: () => void;
-    }
+    };
 
     let {
         label = '',
