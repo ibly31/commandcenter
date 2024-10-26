@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { run, createBubbler, stopPropagation } from 'svelte/legacy';
+    import { createBubbler, stopPropagation } from 'svelte/legacy';
 
     const bubble = createBubbler();
     import HighlightText from './HighlightText.svelte';
@@ -10,7 +10,7 @@
     import type { TabInfo, TabMessageResponse } from '../comms/tabs';
     import { offsetSelectedIndex, switchToTab } from './utils';
 
-    
+
     interface Props {
         /** Props */
         largeWidth?: boolean;
@@ -39,7 +39,7 @@
     });
 
 
-    let queryTabs: TabInfo[] = $state();
+    let queryTabs: TabInfo[] = $derived(searchAllTabs(currentTabs, query));
 
     function searchSelector(tab: TabInfo): string {
         return tab.title.replaceAll('-', ' ');
@@ -130,18 +130,17 @@
             event.preventDefault();
         }
     }
-    run(() => {
+    $effect(() => {
         if (focusInputRef) {
             tabInputRef?.focus();
         }
     });
-    run(() => {
+    $effect(() => {
         if (query) {
             selectedIndex = 0;
         }
     });
-    run(() => {
-        queryTabs = searchAllTabs(currentTabs, query);
+    $effect(() => {
         selectedIndex = offsetSelectedIndex(0, selectedIndex, queryTabs.length);
     });
 </script>
@@ -156,7 +155,7 @@
                bind:value={query}
                onkeydown={handleInputKey}
                spellcheck="false"
-               autocomplete="false"
+               autocomplete="off"
                placeholder="Search tabs..."
                maxlength="20"
                autofocus

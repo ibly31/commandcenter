@@ -1,4 +1,7 @@
 <script lang="ts">
+    import { createBubbler, stopPropagation, preventDefault } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import { Fzf, type FzfResultItem } from 'fzf';
     import HighlightText from './HighlightText.svelte';
     import CommandTypeBadge from './CommandTypeBadge.svelte';
@@ -16,27 +19,36 @@
 
     const EXACT_ID_TC = 'tc';
     const EXACT_ID_GE = 'ge';
+    const EXACT_ID_Q = 'q';
 
-    /** Props */
-    export let largeWidth = false;
-    export let focusInputRef = false;
-    export let escapeHandler: () => void;
-    export let switchModeHandler: (mode: Mode) => void;
-    export let renderingInPage: boolean;
-    $: if (focusInputRef) {
-        commandInputRef?.focus();
+
+    interface Props {
+        /** Props */
+        largeWidth?: boolean;
+        focusInputRef?: boolean;
+        escapeHandler: () => void;
+        switchModeHandler: (mode: Mode) => void;
+        renderingInPage: boolean;
     }
 
-    /** State */
-    let query = '';
-    let commandInputRef: HTMLInputElement;
-    let selectedIndex = 0;
-    let loading = false;
+    let {
+        largeWidth = false,
+        focusInputRef = false,
+        escapeHandler,
+        switchModeHandler,
+        renderingInPage
+    }: Props = $props();
 
-    let bookmarkCommands: Command[] = [];
-    let currentTabCommands: Command[] = [];
-    let closedTabCommands: Command[] = [];
-    let prCommands: Command[] = [];
+    /** State */
+    let query = $state('');
+    let commandInputRef: HTMLInputElement = $state();
+    let selectedIndex = $state(0);
+    let loading = $state(false);
+
+    let bookmarkCommands: Command[] = $state([]);
+    let currentTabCommands: Command[] = $state([]);
+    let closedTabCommands: Command[] = $state([]);
+    let prCommands: Command[] = $state([]);
 
     sendMessage(Msg.loadAllCommands, (response: CommandMessageResponse) => {
         bookmarkCommands = response.bookmarkCommands ?? [];
@@ -61,13 +73,19 @@
             url: '',
             title: 'ge - Go to Extensions',
             sortDate: 0
+        },
+        {
+            type: CommandType.EXACT,
+            id: EXACT_ID_Q,
+            icon: DEFAULT_FAVICON_URL,
+            url: '',
+            title: 'q - Open Quick Links',
+            sortDate: 0
         }
     ];
 
-    let allCommands: Command[] = [];
-    $: allCommands = [...exactCommands, ...currentTabCommands, ...bookmarkCommands, ...prCommands, ...closedTabCommands];
-    let queryCommands: Command[];
-    $: queryCommands = searchCommands(allCommands, query);
+    let allCommands: Command[] = $state([]);
+    let queryCommands: Command[] = $state();
 
     function searchSelector(command: Command): string {
         const { isSearchUrl, url, title, type } = command;
@@ -133,6 +151,8 @@
         } else if (command.type === CommandType.EXACT) {
             if (command.id === EXACT_ID_TC) {
                 switchModeHandler?.(Mode.TAB_CENTER);
+            } else if (command.id === EXACT_ID_Q) {
+                switchModeHandler?.(Mode.QUICK_LINKS);
             } else if (command.id === EXACT_ID_GE) {
                 const existingTab = currentTabCommands.find(tabCommand => tabCommand.url.startsWith('chrome://extensions'));
                 if (existingTab) {
@@ -182,19 +202,30 @@
             renderingInPage && escapeHandler();
         }
     }
+    $effect(() => {
+        if (focusInputRef) {
+            commandInputRef?.focus();
+        }
+    });
+    $effect(() => {
+        allCommands = [...exactCommands, ...currentTabCommands, ...bookmarkCommands, ...prCommands, ...closedTabCommands];
+    })
+    $effect(() => {
+        queryCommands = searchCommands(allCommands, query);
+    });
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="commands-container" class:large-width={largeWidth} on:click|stopPropagation>
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="commands-container" class:large-width={largeWidth} onclick={stopPropagation(bubble('click'))}>
     <div class="input-container" class:loading={loading}>
-        <!-- svelte-ignore a11y-autofocus -->
+        <!-- svelte-ignore a11y_autofocus -->
         <input class="command-input"
                bind:this={commandInputRef}
                bind:value={query}
-               on:keydown={handleInputKey}
+               onkeydown={handleInputKey}
                spellcheck="false"
-               autocomplete="false"
+               autocomplete="off"
                placeholder="Search commands..."
                maxlength="20"
                autofocus
@@ -205,12 +236,12 @@
     </div>
     <div class="commands-list">
         {#each queryCommands as command, index (command.id)}
-            <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+            <!-- svelte-ignore a11y_mouse_events_have_key_events -->
             <a href={command.url}
                class="command"
                class:selected={index === selectedIndex}
-               on:mouseenter={() => onCommandHover(index)}
-               on:click|preventDefault={(event) => doCommand(index, event.metaKey, event.shiftKey)}
+               onmouseenter={() => onCommandHover(index)}
+               onclick={preventDefault((event) => doCommand(index, event.metaKey, event.shiftKey))}
             >
             <span class="command-icon">
                 <img src={command.icon} alt={command.title} />

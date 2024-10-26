@@ -1,6 +1,7 @@
 <script lang="ts">
     import CommandCenter from './CommandCenter.svelte';
     import TabCenter from './TabCenter.svelte';
+    import QuickLinks from './QuickLinks.svelte';
     import { Mode } from '../comms/commands';
 
     let focusInputRef = $state(false);
@@ -20,6 +21,13 @@
 <div class="container" onclick={() => togglefocusInputRef()}>
     {#if mode === Mode.TAB_CENTER}
         <TabCenter
+                largeWidth
+                escapeHandler={() => mode = Mode.COMMAND_CENTER}
+                {focusInputRef}
+                renderingInPage={false}
+        />
+    {:else if mode === Mode.QUICK_LINKS}
+        <QuickLinks
                 largeWidth
                 escapeHandler={() => mode = Mode.COMMAND_CENTER}
                 {focusInputRef}

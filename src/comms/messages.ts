@@ -9,6 +9,7 @@ export const Msg = {
     loadAllCommands: 'loadAllCommands',
     loadClosedTabCommands: 'loadClosedTabCommands',
     loadCurrentTabs: 'loadCurrentTabs',
+    loadQuickLinks: 'loadQuickLinks',
 };
 
 export type Message = {
@@ -44,6 +45,7 @@ export function sendMessage(messageOrString: Message | string, responseCallback?
 export const Action = {
     openCommandCenter: 'openCommandCenter',
     openTabCenter: 'openTabCenter',
+    openQuickLinks: 'openQuickLinks',
     close: 'close',
 }
 

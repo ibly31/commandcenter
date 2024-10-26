@@ -60,7 +60,7 @@
     const ID_SS = 'scrollSmooth';
     let vimKeysBlacklistCSVInvalid = $derived(!csvUrlRe.test(vimKeysBlacklistCSV));
     // TODO: Is there a way to just call on scrollSmooth change?
-    run(() => {
+    $effect(() => {
         if (scrollSmooth || !scrollSmooth) {
             saveSettings();
         }
@@ -114,7 +114,7 @@
                bind:value={githubUsername}
                onkeydown={handleSettingInputKey}
                spellcheck="false"
-               autocomplete="false"
+               autocomplete="off"
                placeholder="GitHub Username"
                minlength="3"
                maxlength="40"
@@ -143,7 +143,7 @@
                onkeydown={handleSettingInputKey}
                class:invalid={vimKeysBlacklistCSVInvalid}
                spellcheck="false"
-               autocomplete="false"
+               autocomplete="off"
                placeholder="google.com, example.com"
         >
     </div>

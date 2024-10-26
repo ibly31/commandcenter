@@ -4,6 +4,7 @@ import { getPRs } from './prs';
 export enum Mode {
     COMMAND_CENTER = 'COMMAND_CENTER',
     TAB_CENTER = 'TAB_CENTER',
+    QUICK_LINKS = 'QUICK_LINKS'
 }
 
 export enum CommandType {
@@ -86,14 +87,24 @@ export async function loadPRCommands(githubUsername: string): Promise<Command[]>
 }
 
 export async function loadBookmarkCommands(): Promise<Command[]> {
-    return bookmarksToCommands(await chrome.bookmarks.getTree());
+    return bookmarksToCommands(await getRootBookmarks());
 }
 
-function bookmarksToCommands(rootNode: chrome.bookmarks.BookmarkTreeNode[]): Command[] {
-    const bookmarksBar = rootNode[0]?.children?.filter(node => node.title?.startsWith('Bookmarks'));
-    const flattened = flattenTree(bookmarksBar[0]?.children);
+export type BookmarkTreeNode = chrome.bookmarks.BookmarkTreeNode;
+export async function getRootBookmarks(): Promise<BookmarkTreeNode[]> {
+    const rootNode = await chrome.bookmarks.getTree()
+    const bookmarksBarNode = rootNode[0]?.children?.filter(node => node.title?.startsWith('Bookmarks'));
+    if (!bookmarksBarNode?.length) {
+        return [];
+    }
+    return bookmarksBarNode[0]?.children ?? [];
+}
+
+type TitleMap = Record<string, string>;
+function bookmarksToCommands(rootBookmarks: BookmarkTreeNode[]): Command[] {
+    const flattened = flattenTree(rootBookmarks);
     flattened.sort((a, b) => Number(a.id) - Number(b.id));
-    const fullTitleMap: { [id: string]: string } = flattened.reduce((ftm, bm) => {
+    const fullTitleMap: TitleMap = flattened.reduce((ftm: TitleMap, bm) => {
         let fullTitle = bm.title;
         if (bm.parentId && bm.parentId in ftm) {
             fullTitle = ftm[bm.parentId] + ' > ' + fullTitle;
@@ -116,19 +127,18 @@ function bookmarksToCommands(rootNode: chrome.bookmarks.BookmarkTreeNode[]): Com
         });
 }
 
-function flattenTree(data: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {
-    return data.reduce((r, { children, ...rest }) => {
+function flattenTree(data: BookmarkTreeNode[]): BookmarkTreeNode[] {
+    return data.reduce((r: BookmarkTreeNode[], { children, ...rest }) => {
         r.push(rest);
         children && r.push(...flattenTree(children));
         return r;
-    }, [])
+    }, []);
 }
 
 export function faviconUrl(link?: string): string {
-    link = link!;
-    if (link.includes('https')) {
+    if (link?.includes('https')) {
         if (!link.includes('lcloud.com')) {
-            return `https://www.google.com/s2/favicons?domain=${link}&sz=128`;
+            return `https://www.google.com/s2/favicons?domain=${link}&sz=64`;
         }
         try {
             const url = new URL(link);

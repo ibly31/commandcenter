@@ -1,9 +1,10 @@
 import CommandCenter from '../components/CommandCenter.svelte';
 import TabCenter from '../components/TabCenter.svelte';
+import QuickLinks from '../components/QuickLinks.svelte';
 
 import './styles.css';
 import { Action, Msg, postActionMessage, Source } from '../comms/messages';
-import { mount } from "svelte";
+import { mount, unmount } from "svelte";
 
 type RenderResult =  () => void;
 
@@ -33,7 +34,7 @@ function renderCommandCenter(): RenderResult {
     let commandCenter: CommandCenter;
 
     function destroy() {
-        commandCenter?.$destroy();
+        unmount(commandCenter);
         removeContainer();
     }
 
@@ -51,12 +52,33 @@ function renderCommandCenter(): RenderResult {
     return () => destroy();
 }
 
+function renderQuickLinks(): RenderResult {
+    const target = createContainer(destroy);
+    let quickLinks: QuickLinks;
+
+    function destroy() {
+        unmount(quickLinks);
+        removeContainer();
+    }
+
+    quickLinks = mount(QuickLinks, {
+        target,
+        props: {
+            focusInputRef: true,
+            renderingInPage: true,
+            escapeHandler: () => destroy(),
+            switchModeHandler: () => destroy()
+        }
+    });
+    return () => destroy();
+}
+
 function renderTabCenter(): RenderResult {
     const target = createContainer(destroy);
     let tabCenter: TabCenter;
 
     function destroy() {
-        tabCenter?.$destroy();
+        unmount(tabCenter);
         removeContainer();
     }
 
@@ -86,6 +108,8 @@ window.addEventListener('message', (message: CommandCenterMessage) => {
             currentRenderResult = renderCommandCenter();
         } else if (message.data.action === Action.openTabCenter) {
             currentRenderResult = renderTabCenter();
+        } else if (message.data.action === Action.openQuickLinks) {
+            currentRenderResult = renderQuickLinks();
         } else if (message.data.action === Action.close) {
             currentRenderResult?.();
         }

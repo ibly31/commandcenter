@@ -9,7 +9,7 @@
     import type { PR, PRMessageResponse } from '../comms/prs';
     import { offsetSelectedIndex, switchToTab } from './utils';
 
-    
+
     interface Props {
         /** Props */
         largeWidth?: boolean;
@@ -33,7 +33,7 @@
 
 
 
-    let queryPRs: PR[] = $state();
+    let queryPRs: PR[] = $derived(searchPRs(prs, query));
 
     function searchSelector(pr: PR): string {
         return pr.searchEntry.replaceAll('-', ' ');
@@ -83,25 +83,24 @@
             }
         }
     }
-    run(() => {
+    $effect(() => {
         if (focusInputRef) {
             tabInputRef?.focus();
         }
     });
-    run(() => {
+    $effect(() => {
         sendMessage({
             loadPRsForGithubUsername: githubUsername
         }, (response: PRMessageResponse) => {
             prs = response.prs ?? [];
         });
     });
-    run(() => {
+    $effect(() => {
         if (query) {
             selectedIndex = 0;
         }
     });
-    run(() => {
-        queryPRs = searchPRs(prs, query);
+    $effect(() => {
         selectedIndex = offsetSelectedIndex(0, selectedIndex, queryPRs.length);
     });
 </script>
@@ -121,7 +120,7 @@
                    bind:value={query}
                    onkeydown={handleInputKey}
                    spellcheck="false"
-                   autocomplete="false"
+                   autocomplete="off"
                    placeholder="Search Pull Requests..."
                    maxlength="20"
                    autofocus
