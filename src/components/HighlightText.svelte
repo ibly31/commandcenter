@@ -1,7 +1,11 @@
 <script lang="ts">
-    export let text: string;
-    export let shouldHighlight = true;
-    export let indices: Set<number> = new Set();
+    type Props = {
+        text: string;
+        shouldHighlight?: boolean;
+        indices?: Set<number>;
+    };
+
+    let { text, shouldHighlight = true, indices = new Set() }: Props = $props();
 </script>
 
 <div class="highlight-text">

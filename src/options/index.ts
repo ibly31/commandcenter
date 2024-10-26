@@ -1,9 +1,10 @@
 import Options from "../components/Options.svelte";
+import { mount } from "svelte";
 
 function render() {
-    new Options({
-        target: document.body
-    });
+    mount(Options, {
+            target: document.body
+        });
 }
 
 document.addEventListener("DOMContentLoaded", render);

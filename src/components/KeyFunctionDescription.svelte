@@ -1,7 +1,11 @@
 <script lang="ts">
     import K from './Key.svelte';
-    export let key: string;
-    export let description: string;
+    type Props = {
+        key: string;
+        description: string;
+    };
+
+    let { key, description }: Props = $props();
 </script>
 
 <div class="key-function-info">

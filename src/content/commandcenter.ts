@@ -1,8 +1,10 @@
 import CommandCenter from '../components/CommandCenter.svelte';
 import TabCenter from '../components/TabCenter.svelte';
+import QuickLinks from '../components/QuickLinks.svelte';
 
 import './styles.css';
 import { Action, Msg, postActionMessage, Source } from '../comms/messages';
+import { mount, unmount } from "svelte";
 
 type RenderResult =  () => void;
 
@@ -32,19 +34,40 @@ function renderCommandCenter(): RenderResult {
     let commandCenter: CommandCenter;
 
     function destroy() {
-        commandCenter?.$destroy();
+        unmount(commandCenter);
         removeContainer();
     }
 
-    commandCenter = new CommandCenter({
+    commandCenter = mount(CommandCenter, {
+            target,
+            props: {
+                focusInputRef: true,
+                renderingInPage: true,
+                escapeHandler: () => destroy(),
+                switchModeHandler: () => {
+                    postActionMessage(Action.close);
+                }
+            }
+        });
+    return () => destroy();
+}
+
+function renderQuickLinks(): RenderResult {
+    const target = createContainer(destroy);
+    let quickLinks: QuickLinks;
+
+    function destroy() {
+        unmount(quickLinks);
+        removeContainer();
+    }
+
+    quickLinks = mount(QuickLinks, {
         target,
         props: {
             focusInputRef: true,
             renderingInPage: true,
             escapeHandler: () => destroy(),
-            switchModeHandler: () => {
-                postActionMessage(Action.close);
-            }
+            switchModeHandler: () => destroy()
         }
     });
     return () => destroy();
@@ -55,19 +78,19 @@ function renderTabCenter(): RenderResult {
     let tabCenter: TabCenter;
 
     function destroy() {
-        tabCenter?.$destroy();
+        unmount(tabCenter);
         removeContainer();
     }
 
-    tabCenter = new TabCenter({
-        target,
-        props: {
-            focusInputRef: true,
-            renderingInPage: true,
-            escapeHandler: () => destroy(),
-            switchModeHandler: () => destroy()
-        }
-    });
+    tabCenter = mount(TabCenter, {
+            target,
+            props: {
+                focusInputRef: true,
+                renderingInPage: true,
+                escapeHandler: () => destroy(),
+                switchModeHandler: () => destroy()
+            }
+        });
     return () => destroy();
 }
 
@@ -85,6 +108,8 @@ window.addEventListener('message', (message: CommandCenterMessage) => {
             currentRenderResult = renderCommandCenter();
         } else if (message.data.action === Action.openTabCenter) {
             currentRenderResult = renderTabCenter();
+        } else if (message.data.action === Action.openQuickLinks) {
+            currentRenderResult = renderQuickLinks();
         } else if (message.data.action === Action.close) {
             currentRenderResult?.();
         }

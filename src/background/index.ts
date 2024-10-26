@@ -2,16 +2,14 @@ import {
     type Command,
     CommandType,
     loadBookmarkCommands,
-    loadCurrentTabCommands, loadPRCommands,
+    loadCurrentTabCommands,
+    loadPRCommands,
 } from '../comms/commands';
 import { type CommandMessageResponse, type Message, Msg } from '../comms/messages';
 import { loadCurrentTabs, makeSenderTab, type TabInfo } from '../comms/tabs';
 import { getPRs } from '../comms/prs';
 import { storage } from '../storage';
-
-// chrome.runtime.onInstalled.addListener(() => {
-//      storage.get().then(console.log);
-// });
+import { loadQuickLinks } from '../comms/quickLinks';
 
 chrome.runtime.onMessage.addListener(
     (message: Message, sender, sendResponse) => {
@@ -37,6 +35,10 @@ chrome.runtime.onMessage.addListener(
             } else if (message.directive === Msg.loadClosedTabCommands) {
                 sendResponse({
                     closedTabCommands: getClosedTabCommands()
+                });
+            } else if (message.directive === Msg.loadQuickLinks) {
+                loadQuickLinks().then(quickLinks => {
+                    sendResponse({ quickLinks });
                 });
             }
         } else if (message.openTabUrl !== undefined) {
