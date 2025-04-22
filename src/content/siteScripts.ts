@@ -90,6 +90,55 @@ siteScript('meet.google.com', 'Google Meet', () => {
         }
         return didMute;
     });
+
+    const MUTE_SELECTOR = '[role="button"][data-is-muted]'
+    const toggleMute = () => document.querySelector<HTMLButtonElement>(MUTE_SELECTOR)?.click();
+    const MI_ID = 'commandcenter-muteindicator';
+    setInterval(() => {
+        if (!document.querySelector('c-wiz')) {
+            return;
+        }
+        let muteIndicator = document.getElementById(MI_ID) as HTMLSpanElement;
+        if (!muteIndicator) {
+            muteIndicator = document.createElement('span');
+            muteIndicator.id = MI_ID;
+            muteIndicator.style.cssText = `
+                position: absolute;
+                border-radius: 26px;
+                font-size: 1rem;
+                padding: 10px 20px;
+                width: 80px;
+                text-align: center;
+                cursor: pointer;
+                top: 90px;
+                right: 32px;
+                height: 20px;
+                z-index: 100000000;
+                `;
+
+            muteIndicator.onclick = toggleMute;
+            muteIndicator.addEventListener('mouseenter', () => {
+              muteIndicator.style.filter = 'brightness(0.8)';
+            });
+
+            muteIndicator.addEventListener('mouseleave', () => {
+              muteIndicator.style.filter = '';
+            });
+            document.querySelector('c-wiz')?.appendChild(muteIndicator);
+        }
+        const isMuted = document.querySelector(MUTE_SELECTOR)?.getAttribute('data-is-muted') === 'true';
+        if (isMuted) {
+            muteIndicator.textContent = 'Muted';
+            muteIndicator.style.backgroundColor = '#dc362e';
+            muteIndicator.style.border = '1px solid #dc362e';
+            muteIndicator.style.color = 'white';
+        } else {
+            muteIndicator.textContent = 'Unmuted';
+            muteIndicator.style.backgroundColor = 'initial';
+            muteIndicator.style.color = 'initial';
+            muteIndicator.style.border = '1px solid black';
+        }
+    }, 200);
 });
 
 siteScript('awsapps.com', 'AWS SSO', () => {
