@@ -2,7 +2,10 @@ import { Action, Msg, postActionMessage, sendMessage } from '../comms/messages';
 import {
     type ContentUrls,
     isFocusedOnInput,
+    NEXT_PAGE,
     openVideoSourceUrl,
+    searchForHighlightedText,
+    PREV_PAGE,
     reloadPage,
     scrollTo,
     triggerPageOffset,
@@ -34,16 +37,22 @@ export const G_KEY_MAP: KeyMap = {
         sendMessage(Msg.openExtensions);
     }),
     ...makeKeyFunction('n', 'Go to "Next Page" by incrementing last number in URL', () => {
-        triggerPageOffset(1);
+        triggerPageOffset(NEXT_PAGE);
     }),
     ...makeKeyFunction('h', 'Alias for Go to "Next Page"', () => {
-        triggerPageOffset(1);
+        triggerPageOffset(NEXT_PAGE);
     }),
     ...makeKeyFunction('d', 'Go to "Previous Page" by decrementing last number in URL', () => {
-        triggerPageOffset(-1);
+        triggerPageOffset(PREV_PAGE);
+    }),
+    ...makeKeyFunction('b', 'Alias for Go to "Prev Page"', () => {
+        triggerPageOffset(PREV_PAGE);
     }),
     ...makeKeyFunction('v', 'Go to video source url', () => {
         openVideoSourceUrl();
+    }),
+    ...makeKeyFunction('m', 'Search for highlighted text', () => {
+        searchForHighlightedText();
     }),
     ...makeKeyFunction('D', 'Duplicate current tab', () => {
         sendMessage(Msg.duplicateTab);

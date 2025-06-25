@@ -37,8 +37,50 @@ export function queryEachAnchor(selector: string, each: (element: HTMLAnchorElem
     queryEach<HTMLAnchorElement>(selector, each);
 }
 
-export function triggerPageOffset(offset: number) {
+export function clickElement(selector: string) {
+
+}
+
+export type PageOffset = -1 | 1;
+export const NEXT_PAGE: PageOffset = 1;
+export const PREV_PAGE: PageOffset = -1;
+type PageSelectors = {
+    [NEXT_PAGE]: string,
+    [PREV_PAGE]: string
+};
+
+const PAGE_OFFSET_BUTTON_MAP: { [siteKey: string]: PageSelectors } = {
+    'reddit.com': {
+        [NEXT_PAGE]: '.next-button a',
+        [PREV_PAGE]: '.prev-button a'
+    },
+    'erles': {
+        [NEXT_PAGE]: 'a.pop[rel="next"]',
+        [PREV_PAGE]: 'a.pop[rel="prev"]'
+    }
+};
+
+function clickPageOffsetButtonIfDefined(offset: PageOffset): boolean {
+    const siteKey = Object.keys(PAGE_OFFSET_BUTTON_MAP).find(urlIncludes);
+    if (!siteKey) {
+        return false;
+    }
+    const selector = PAGE_OFFSET_BUTTON_MAP[siteKey][offset];
+    const element = document.querySelector(selector);
+    
+    if (element && typeof (element as HTMLElement).click === 'function') {
+        (element as HTMLElement).click();
+    }
+
+    return true;
+}
+
+export function triggerPageOffset(offset: PageOffset) {
     const url = location.href;
+
+    if (clickPageOffsetButtonIfDefined(offset)) {
+        return;
+    }
 
     const numbers = url.match(/(\d+)/g);
     if (!numbers) {
@@ -54,6 +96,47 @@ export function triggerPageOffset(offset: number) {
 
     const offsetNumber = (Number(lastNumber) + offset).toString();
     location.href = url.substring(0, index) + offsetNumber + url.substring(index + offsetNumber.length);
+}
+
+let currentlyHoveredElement: Element | null = null;
+export function trackHoveredElement() {
+    document.addEventListener('mouseover', (event) => {
+        currentlyHoveredElement = event.target as Element;
+    });
+
+    document.addEventListener('mouseout', (event) => {
+        // Clear it only if the element is fully exited
+        if (event.target === currentlyHoveredElement) {
+            currentlyHoveredElement = null;
+        }
+    });
+}
+
+export function searchForHighlightedText() {
+    if (!urlIncludes('erles')) {
+        return;
+    }
+
+    const term = currentlyHoveredElement?.textContent;
+
+    // const selection = document.getSelection();
+    // if (!selection) {
+    //     return;
+    // }
+    // const term = encodeURIComponent(selection.toString().trim());
+    // if (!term) {
+    //     return;
+    // }
+    openNewTab(`/term/${term}`);
+}
+
+export const CSS_VAR_REDDIT_THUMBNAIL = '--commandcenter-reddit-thumbnail-size';
+export const REDDIT_THUMBNAIL_SIZE_INCREMENT = 10;
+
+export function triggerRedditThumbnailSize(multiplier: number) {
+    let current = getComputedStyle(document.documentElement).getPropertyValue(CSS_VAR_REDDIT_THUMBNAIL).trim();
+    current = current.replace('px', '');
+    document.documentElement.style.setProperty(CSS_VAR_REDDIT_THUMBNAIL, `${Number(current) + multiplier * REDDIT_THUMBNAIL_SIZE_INCREMENT}px`);
 }
 
 export function reloadPage() {

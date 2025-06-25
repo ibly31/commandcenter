@@ -18,3 +18,9 @@
     margin: 0;
     padding: 0;
 }
+
+/** erles */
+span.mag-icon-wrapper[data-image-view-modal-codename] {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+}

@@ -1,5 +1,4 @@
-import { type ContentUrls, queryEachAnchor, retryAction, urlIncludes } from './utils';
-import type { HTMLImgAttributes } from 'svelte/elements';
+import { type ContentUrls, queryEachAnchor, retryAction, trackHoveredElement, triggerRedditThumbnailSize, urlIncludes, CSS_VAR_REDDIT_THUMBNAIL } from './utils';
 
 type SiteScript = {
     urls: ContentUrls;
@@ -10,6 +9,16 @@ export const SITE_SCRIPTS: SiteScript[] = [];
 
 function siteScript(urls: ContentUrls, description: string, setup: () => void) {
     SITE_SCRIPTS.push({ urls, description, setup });
+}
+
+function insertStyle(dedupeId: string, cssText: string) {
+    if (document.getElementById(dedupeId)) {
+        return;
+    }
+    const style = document.createElement('style');
+    style.id = dedupeId;
+    style.textContent = cssText;
+    document.head.appendChild(style);
 }
 
 siteScript('jira.dev.lithium.com', 'Jira', () => {
@@ -55,6 +64,45 @@ siteScript('reddit.com', 'Reddit', () => {
             a.href = a.href + 'top/?sort=top&t=all';
         }
     });
+
+    // todo: import .scss file instead of inline string?
+    // todo: some keybinding to raise/lower size
+    insertStyle('commandcenter-reddit', `
+        :root {
+            ${CSS_VAR_REDDIT_THUMBNAIL}: 100px;
+        }
+
+
+        .linklisting .link a.thumbnail {
+            width: var(${CSS_VAR_REDDIT_THUMBNAIL});
+            margin: 0 7px 0 0;
+        }
+
+        .linklisting .link a.thumbnail img {
+            width: var(${CSS_VAR_REDDIT_THUMBNAIL});
+            height: var(${CSS_VAR_REDDIT_THUMBNAIL});
+        }
+        `
+    );
+
+    document.addEventListener('keydown', function (event) {
+        const keyLower = event.key.toLowerCase();
+        if (event.ctrlKey && event.shiftKey) {
+            if (keyLower === 'b') {
+                triggerRedditThumbnailSize(1);
+                event.preventDefault();
+
+            } else if (keyLower === 'v') {
+                triggerRedditThumbnailSize(-1);
+                event.preventDefault();
+
+            }
+        }
+    });
+});
+
+siteScript('erles', 'Erles', () => {
+    trackHoveredElement();
 });
 
 siteScript('github.com', 'GitHub', () => {
