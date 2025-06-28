@@ -91,13 +91,125 @@ export async function loadBookmarkCommands(): Promise<Command[]> {
 }
 
 export type BookmarkTreeNode = chrome.bookmarks.BookmarkTreeNode;
+
+// Extended type to include the new properties from Chrome's upcoming API changes
+export interface ExtendedBookmarkTreeNode extends BookmarkTreeNode {
+    folderType?: 'bookmarks-bar' | 'other' | 'mobile';
+    syncing?: boolean;
+}
+
 export async function getRootBookmarks(): Promise<BookmarkTreeNode[]> {
-    const rootNode = await chrome.bookmarks.getTree()
-    const bookmarksBarNode = rootNode[0]?.children?.filter(node => node.title?.startsWith('Bookmarks'));
-    if (!bookmarksBarNode?.length) {
+    const rootNode = await chrome.bookmarks.getTree();
+    
+    // Handle the new dual storage system with robust backward compatibility
+    const allBookmarksBarFolders: ExtendedBookmarkTreeNode[] = [];
+    
+    // Find all bookmarks bar folders across the tree
+    function findBookmarksBarFolders(nodes: ExtendedBookmarkTreeNode[]) {
+        for (const node of nodes) {
+            // Use folderType if available (new API), fallback to title check (old API)
+            // Be more flexible with title matching for better compatibility
+            const isBookmarksBar = node.folderType === 'bookmarks-bar' || 
+                (node.title && (
+                    node.title.toLowerCase().includes('bookmarks bar') ||
+                    node.title.toLowerCase().includes('bookmark bar') ||
+                    node.title.toLowerCase().includes('favoritos') || // Spanish
+                    node.title.toLowerCase().includes('favoris') ||   // French
+                    node.title.toLowerCase().includes('bookmarks')    // Generic fallback
+                ));
+            
+            if (isBookmarksBar) {
+                allBookmarksBarFolders.push(node);
+            }
+            
+            // Recursively search children
+            if (node.children) {
+                findBookmarksBarFolders(node.children);
+            }
+        }
+    }
+    
+    findBookmarksBarFolders(rootNode as ExtendedBookmarkTreeNode[]);
+    
+    // If no bookmarks bar folders found, try alternative approach for backward compatibility
+    if (allBookmarksBarFolders.length === 0) {
+        // Fallback: look for the first folder that might be bookmarks bar
+        // This handles cases where the title doesn't match our patterns
+        if (rootNode[0]?.children && rootNode[0].children.length > 0) {
+            // Return the first folder's children as a fallback
+            return rootNode[0].children[0]?.children ?? [];
+        }
         return [];
     }
-    return bookmarksBarNode[0]?.children ?? [];
+    
+    // Combine all bookmarks from all bookmarks bar folders
+    const allBookmarks: BookmarkTreeNode[] = [];
+    for (const bookmarksBarFolder of allBookmarksBarFolders) {
+        if (bookmarksBarFolder.children) {
+            allBookmarks.push(...bookmarksBarFolder.children);
+        }
+    }
+    
+    return allBookmarks;
+}
+
+// Utility function to get all bookmarks (not just bookmarks bar) for debugging
+export async function getAllBookmarks(): Promise<ExtendedBookmarkTreeNode[]> {
+    try {
+        // Check if chrome.bookmarks API is available
+        if (!chrome.bookmarks || !chrome.bookmarks.getTree) {
+            console.warn('Chrome bookmarks API not available');
+            return [];
+        }
+        
+        const rootNode = await chrome.bookmarks.getTree();
+        const allBookmarks: ExtendedBookmarkTreeNode[] = [];
+        
+        function flattenAllBookmarks(nodes: ExtendedBookmarkTreeNode[]) {
+            for (const node of nodes) {
+                allBookmarks.push(node);
+                if (node.children) {
+                    flattenAllBookmarks(node.children);
+                }
+            }
+        }
+        
+        flattenAllBookmarks(rootNode as ExtendedBookmarkTreeNode[]);
+        return allBookmarks;
+    } catch (error) {
+        console.warn('Error getting all bookmarks:', error);
+        return [];
+    }
+}
+
+// Utility function to check if the new API features are available
+export async function hasNewBookmarkAPI(): Promise<boolean> {
+    try {
+        // Check if chrome.bookmarks API is available at all
+        if (!chrome.bookmarks || !chrome.bookmarks.getTree) {
+            console.warn('Chrome bookmarks API not available');
+            return false;
+        }
+        
+        const rootNode = await chrome.bookmarks.getTree();
+        const allBookmarks = await getAllBookmarks();
+        
+        // Check if any bookmark has the new properties
+        const hasNewProps = allBookmarks.some(bookmark => 
+            'folderType' in bookmark || 'syncing' in bookmark
+        );
+        
+        console.log('New bookmark API detection:', {
+            totalBookmarks: allBookmarks.length,
+            hasNewProps,
+            sampleBookmark: allBookmarks[0] ? Object.keys(allBookmarks[0]) : []
+        });
+        
+        return hasNewProps;
+    } catch (error) {
+        console.warn('Error checking for new bookmark API:', error);
+        return false;
+    }
 }
 
 type TitleMap = Record<string, string>;
@@ -112,16 +224,32 @@ function bookmarksToCommands(rootBookmarks: BookmarkTreeNode[]): Command[] {
         ftm[bm.id] = fullTitle;
         return ftm;
     }, {});
+    
     return flattened
         .filter(bm => !!bm.url)
         .map(bm => {
             const sortDate: number | undefined = 'dateLastUsed' in bm ? bm['dateLastUsed'] as number : bm.dateAdded;
+            
+            // // Handle syncing status for better user experience
+            // // Only show indicators if the syncing property is explicitly available
+            // const extendedBm = bm as ExtendedBookmarkTreeNode;
+            let title = fullTitleMap[bm.id];
+            //
+            // // Only add visual indicators if the syncing property is explicitly set
+            // // This prevents false positives in browsers that don't have the new API
+            // if (extendedBm.syncing === false) {
+            //     title = `[Local] ${title}`;
+            // } else if (extendedBm.syncing === true) {
+            //     title = `[Synced] ${title}`;
+            // }
+            // // If syncing is undefined (most browsers currently), don't add any indicator
+            
             return {
                 type: CommandType.BOOKMARK,
                 id: `${CommandType.BOOKMARK}-${bm.id}`,
                 icon: faviconUrl(bm.url),
                 url: bm.url!,
-                title: fullTitleMap[bm.id],
+                title,
                 sortDate
             };
         });
