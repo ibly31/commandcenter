@@ -1,4 +1,4 @@
-import { type ContentUrls, queryEachAnchor, retryAction, trackHoveredElement, triggerRedditThumbnailSize, urlIncludes, CSS_VAR_REDDIT_THUMBNAIL } from './utils';
+import { type ContentUrls, queryEachAnchor, retryAction, triggerRedditThumbnailSize, urlIncludes, CSS_VAR_REDDIT_THUMBNAIL } from './utils';
 
 type SiteScript = {
     urls: ContentUrls;
@@ -101,9 +101,6 @@ siteScript('reddit.com', 'Reddit', () => {
     });
 });
 
-siteScript('erles', 'Erles', () => {
-    trackHoveredElement();
-});
 
 siteScript('github.com', 'GitHub', () => {
     function retryStatusActions() {

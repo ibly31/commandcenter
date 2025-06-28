@@ -230,26 +230,26 @@ function bookmarksToCommands(rootBookmarks: BookmarkTreeNode[]): Command[] {
         .map(bm => {
             const sortDate: number | undefined = 'dateLastUsed' in bm ? bm['dateLastUsed'] as number : bm.dateAdded;
             
-            // Handle syncing status for better user experience
-            // Only show indicators if the syncing property is explicitly available
-            const extendedBm = bm as ExtendedBookmarkTreeNode;
+            // // Handle syncing status for better user experience
+            // // Only show indicators if the syncing property is explicitly available
+            // const extendedBm = bm as ExtendedBookmarkTreeNode;
             let title = fullTitleMap[bm.id];
-            
-            // Only add visual indicators if the syncing property is explicitly set
-            // This prevents false positives in browsers that don't have the new API
-            if (extendedBm.syncing === false) {
-                title = `[Local] ${title}`;
-            } else if (extendedBm.syncing === true) {
-                title = `[Synced] ${title}`;
-            }
-            // If syncing is undefined (most browsers currently), don't add any indicator
+            //
+            // // Only add visual indicators if the syncing property is explicitly set
+            // // This prevents false positives in browsers that don't have the new API
+            // if (extendedBm.syncing === false) {
+            //     title = `[Local] ${title}`;
+            // } else if (extendedBm.syncing === true) {
+            //     title = `[Synced] ${title}`;
+            // }
+            // // If syncing is undefined (most browsers currently), don't add any indicator
             
             return {
                 type: CommandType.BOOKMARK,
                 id: `${CommandType.BOOKMARK}-${bm.id}`,
                 icon: faviconUrl(bm.url),
                 url: bm.url!,
-                title: title,
+                title,
                 sortDate
             };
         });

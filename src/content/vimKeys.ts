@@ -4,7 +4,6 @@ import {
     isFocusedOnInput,
     NEXT_PAGE,
     openVideoSourceUrl,
-    searchForHighlightedText,
     PREV_PAGE,
     reloadPage,
     scrollTo,
@@ -50,9 +49,6 @@ export const G_KEY_MAP: KeyMap = {
     }),
     ...makeKeyFunction('v', 'Go to video source url', () => {
         openVideoSourceUrl();
-    }),
-    ...makeKeyFunction('m', 'Search for highlighted text', () => {
-        searchForHighlightedText();
     }),
     ...makeKeyFunction('D', 'Duplicate current tab', () => {
         sendMessage(Msg.duplicateTab);

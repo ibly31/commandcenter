@@ -98,37 +98,6 @@ export function triggerPageOffset(offset: PageOffset) {
     location.href = url.substring(0, index) + offsetNumber + url.substring(index + offsetNumber.length);
 }
 
-let currentlyHoveredElement: Element | null = null;
-export function trackHoveredElement() {
-    document.addEventListener('mouseover', (event) => {
-        currentlyHoveredElement = event.target as Element;
-    });
-
-    document.addEventListener('mouseout', (event) => {
-        // Clear it only if the element is fully exited
-        if (event.target === currentlyHoveredElement) {
-            currentlyHoveredElement = null;
-        }
-    });
-}
-
-export function searchForHighlightedText() {
-    if (!urlIncludes('erles')) {
-        return;
-    }
-
-    const term = currentlyHoveredElement?.textContent;
-
-    // const selection = document.getSelection();
-    // if (!selection) {
-    //     return;
-    // }
-    // const term = encodeURIComponent(selection.toString().trim());
-    // if (!term) {
-    //     return;
-    // }
-    openNewTab(`/term/${term}`);
-}
 
 export const CSS_VAR_REDDIT_THUMBNAIL = '--commandcenter-reddit-thumbnail-size';
 export const REDDIT_THUMBNAIL_SIZE_INCREMENT = 10;
