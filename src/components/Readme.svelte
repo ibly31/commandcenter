@@ -11,18 +11,22 @@
     let gDoubleTime = $state(350);
     let vimKeysBlacklistCSV = $state('');
     let scrollSmooth = $state(true);
+    let newTabBackgroundColor = $state('#202124');
+    let redditThumbnailSizeIncrement = $state(5);
     storage.get().then((storage: IStorage) => {
         githubUsername = storage.githubUsername;
         gDoubleTime = storage.gDoubleTime;
         vimKeysBlacklistCSV = storage.vimKeysBlacklistCSV;
         scrollSmooth = storage.scrollSmooth;
+        newTabBackgroundColor = storage.newTabBackgroundColor;
+        redditThumbnailSizeIncrement = storage.redditThumbnailSizeIncrement;
     });
 
     const csvUrlRe = /^[.a-z0-9,_ -]*$/
 
 
     function saveSettings() {
-        storage.set({ githubUsername, gDoubleTime, vimKeysBlacklistCSV, scrollSmooth });
+        storage.set({ githubUsername, gDoubleTime, vimKeysBlacklistCSV, scrollSmooth, newTabBackgroundColor, redditThumbnailSizeIncrement });
     }
 
     let debounceTimer: number;
@@ -56,6 +60,8 @@
     const ID_GDT = 'gDoubleTime';
     const ID_VKBCSV = 'vimKeysBlacklistCSV';
     const ID_SS = 'scrollSmooth';
+    const ID_NTBC = 'newTabBackgroundColor';
+    const ID_RTSI = 'redditThumbnailSizeIncrement';
     let vimKeysBlacklistCSVInvalid = $derived(!csvUrlRe.test(vimKeysBlacklistCSV));
     // TODO: Is there a way to just call on scrollSmooth change?
     $effect(() => {
@@ -116,7 +122,6 @@
                placeholder="GitHub Username"
                minlength="3"
                maxlength="40"
-               required
         >
     </div>
     <div class="setting-input">
@@ -148,6 +153,26 @@
     <div class="setting-input align-center">
         <label for={ID_SS}>Smooth Scroll:</label>
         <Switch id={ID_SS} bind:checked={scrollSmooth} />
+    </div>
+    <div class="setting-input">
+        <label for={ID_NTBC}>New Tab Background Color:</label>
+        <input id={ID_NTBC}
+               name={ID_NTBC}
+               bind:value={newTabBackgroundColor}
+               onchange={saveSettings}
+               type="color"
+        >
+    </div>
+    <div class="setting-input">
+        <label for={ID_RTSI}>Reddit Thumbnail Size Increment:</label>
+        <input id={ID_RTSI}
+               name={ID_RTSI}
+               bind:value={redditThumbnailSizeIncrement}
+               onkeyup={handleSettingInputKey}
+               type="number"
+               min="1"
+               max="50"
+        >
     </div>
     <div class="setting-input">
         <label for="resetStorage">Reset Storage:</label>
@@ -214,6 +239,10 @@
             &:invalid, &.invalid {
                 outline: 1px solid $kh-red;
             }
+        }
+
+        input[type="color"] {
+            padding: 0;
         }
     }
 
