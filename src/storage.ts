@@ -5,6 +5,7 @@ export type IStorage = {
     scrollSmooth: boolean;
     newTabBackgroundColor: string;
     redditThumbnailSizeIncrement: number;
+    currentRedditThumbnailSize: number;
 };
 
 const defaultStorage: IStorage = {
@@ -14,6 +15,7 @@ const defaultStorage: IStorage = {
     scrollSmooth: true,
     newTabBackgroundColor: '#202124', // $kh-black value
     redditThumbnailSizeIncrement: 5,
+    currentRedditThumbnailSize: 100,
 };
 
 export async function resetStorage() {

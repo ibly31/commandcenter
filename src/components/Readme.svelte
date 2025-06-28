@@ -13,6 +13,7 @@
     let scrollSmooth = $state(true);
     let newTabBackgroundColor = $state('#202124');
     let redditThumbnailSizeIncrement = $state(5);
+    let currentRedditThumbnailSize = $state(70);
     storage.get().then((storage: IStorage) => {
         githubUsername = storage.githubUsername;
         gDoubleTime = storage.gDoubleTime;
@@ -20,13 +21,21 @@
         scrollSmooth = storage.scrollSmooth;
         newTabBackgroundColor = storage.newTabBackgroundColor;
         redditThumbnailSizeIncrement = storage.redditThumbnailSizeIncrement;
+        currentRedditThumbnailSize = storage.currentRedditThumbnailSize;
     });
 
     const csvUrlRe = /^[.a-z0-9,_ -]*$/
 
-
     function saveSettings() {
-        storage.set({ githubUsername, gDoubleTime, vimKeysBlacklistCSV, scrollSmooth, newTabBackgroundColor, redditThumbnailSizeIncrement });
+        storage.set({
+            githubUsername,
+            gDoubleTime,
+            vimKeysBlacklistCSV,
+            scrollSmooth,
+            newTabBackgroundColor,
+            redditThumbnailSizeIncrement,
+            currentRedditThumbnailSize
+        });
     }
 
     let debounceTimer: number;
@@ -62,6 +71,7 @@
     const ID_SS = 'scrollSmooth';
     const ID_NTBC = 'newTabBackgroundColor';
     const ID_RTSI = 'redditThumbnailSizeIncrement';
+    const ID_CRTS = 'currentRedditThumbnailSize';
     let vimKeysBlacklistCSVInvalid = $derived(!csvUrlRe.test(vimKeysBlacklistCSV));
     // TODO: Is there a way to just call on scrollSmooth change?
     $effect(() => {
@@ -172,6 +182,17 @@
                type="number"
                min="1"
                max="50"
+        >
+    </div>
+    <div class="setting-input">
+        <label for={ID_CRTS}>Reddit Thumbnail Size:</label>
+        <input id={ID_CRTS}
+               name={ID_CRTS}
+               bind:value={currentRedditThumbnailSize}
+               onkeyup={handleSettingInputKey}
+               type="number"
+               min="30"
+               max="250"
         >
     </div>
     <div class="setting-input">

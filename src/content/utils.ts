@@ -108,7 +108,12 @@ export async function triggerRedditThumbnailSize(multiplier: number) {
     
     let current = getComputedStyle(document.documentElement).getPropertyValue(CSS_VAR_REDDIT_THUMBNAIL).trim();
     current = current.replace('px', '');
-    document.documentElement.style.setProperty(CSS_VAR_REDDIT_THUMBNAIL, `${Number(current) + multiplier * increment}px`);
+    const newSize = Number(current) + multiplier * increment;
+    
+    document.documentElement.style.setProperty(CSS_VAR_REDDIT_THUMBNAIL, `${newSize}px`);
+    
+    // Save the new size to storage
+    await storage.set({ ...storageData, currentRedditThumbnailSize: newSize });
 }
 
 export function reloadPage() {
