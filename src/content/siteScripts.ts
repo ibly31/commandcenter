@@ -80,7 +80,8 @@ siteScript('reddit.com', 'Reddit', () => {
 
         .linklisting .link a.thumbnail img {
             width: var(${CSS_VAR_REDDIT_THUMBNAIL});
-            height: var(${CSS_VAR_REDDIT_THUMBNAIL});
+            height: auto;
+            max-height: calc(var(${CSS_VAR_REDDIT_THUMBNAIL}) * 1.5);
         }
         `
     );

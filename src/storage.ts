@@ -3,6 +3,9 @@ export type IStorage = {
     gDoubleTime: number;
     vimKeysBlacklistCSV: string;
     scrollSmooth: boolean;
+    newTabBackgroundColor: string;
+    redditThumbnailSizeIncrement: number;
+    currentRedditThumbnailSize: number;
 };
 
 const defaultStorage: IStorage = {
@@ -10,6 +13,9 @@ const defaultStorage: IStorage = {
     gDoubleTime: 350,
     vimKeysBlacklistCSV: 'google.com, gmail.com',
     scrollSmooth: true,
+    newTabBackgroundColor: '#202124', // $kh-black value
+    redditThumbnailSizeIncrement: 5,
+    currentRedditThumbnailSize: 100,
 };
 
 export async function resetStorage() {

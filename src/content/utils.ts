@@ -100,12 +100,20 @@ export function triggerPageOffset(offset: PageOffset) {
 
 
 export const CSS_VAR_REDDIT_THUMBNAIL = '--commandcenter-reddit-thumbnail-size';
-export const REDDIT_THUMBNAIL_SIZE_INCREMENT = 10;
 
-export function triggerRedditThumbnailSize(multiplier: number) {
+export async function triggerRedditThumbnailSize(multiplier: number) {
+    const { storage } = await import('../storage');
+    const storageData = await storage.get();
+    const increment = storageData.redditThumbnailSizeIncrement;
+    
     let current = getComputedStyle(document.documentElement).getPropertyValue(CSS_VAR_REDDIT_THUMBNAIL).trim();
     current = current.replace('px', '');
-    document.documentElement.style.setProperty(CSS_VAR_REDDIT_THUMBNAIL, `${Number(current) + multiplier * REDDIT_THUMBNAIL_SIZE_INCREMENT}px`);
+    const newSize = Number(current) + multiplier * increment;
+    
+    document.documentElement.style.setProperty(CSS_VAR_REDDIT_THUMBNAIL, `${newSize}px`);
+    
+    // Save the new size to storage
+    await storage.set({ ...storageData, currentRedditThumbnailSize: newSize });
 }
 
 export function reloadPage() {

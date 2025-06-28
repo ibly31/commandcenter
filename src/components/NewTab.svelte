@@ -3,10 +3,16 @@
     import TabCenter from './TabCenter.svelte';
     import QuickLinks from './QuickLinks.svelte';
     import { Mode } from '../comms/commands';
+    import { storage } from '../storage';
 
     let focusInputRef = $state(false);
-
     let mode = $state(Mode.COMMAND_CENTER);
+    let backgroundColor = $state('#202124'); // Default to $kh-black
+
+    // Load background color from storage
+    storage.get().then((storageData) => {
+        backgroundColor = storageData.newTabBackgroundColor;
+    });
 
     function togglefocusInputRef() {
         focusInputRef = true;
@@ -18,7 +24,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="container" onclick={() => togglefocusInputRef()}>
+<div class="container" style="background-color: {backgroundColor}" onclick={() => togglefocusInputRef()}>
     {#if mode === Mode.TAB_CENTER}
         <TabCenter
                 largeWidth
@@ -51,7 +57,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: $kh-black;
         height: 100vh;
     }
 </style>
